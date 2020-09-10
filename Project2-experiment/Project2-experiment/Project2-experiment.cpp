@@ -1,12 +1,8 @@
-// Project2-experiment.cpp : This file contains the 'main' function. Program execution begins and ends there.
-//
-
-#include <iostream>
-
-int main()
-{
-    std::cout << "Hello World!\n";
-}
+/*
+Project 2
+CS321
+Mark Erickson
+*/
 
 // Run program: Ctrl + F5 or Debug > Start Without Debugging menu
 // Debug program: F5 or Debug > Start Debugging menu
@@ -18,3 +14,42 @@ int main()
 //   4. Use the Error List window to view errors
 //   5. Go to Project > Add New Item to create new code files, or Project > Add Existing Item to add existing code files to the project
 //   6. In the future, to open this project again, go to File > Open > Project and select the .sln file
+
+// Source file including main method
+#include <iostream>
+#include <stdio.h>
+#include <stdlib.h>
+#include <malloc.h>
+#include <string>
+#include <fstream>
+#include <GL/freeglut.h>
+
+#include "Project2.h"
+
+// In the future this program could need command line functions
+//int main()
+int main(int argc, char** argv)
+{
+	init_Window_Attrubutes(argc, argv);
+	other_init();
+	glutDisplayFunc(display);
+	glutMainLoop();
+
+	return 0;
+	/*
+		char answer;
+		do {
+			PromptFileName();
+			CreateArray();
+			ReadDataBySpace();
+			ProcessData();
+			closeFile();
+			// repeat option for the grader's convenience.
+			std::cout << std::endl << "You have reached this file's happy completion." << std::endl;
+			std::cout << std::endl << "Would you like to try another file? [y/n]?";
+			std::cin >> answer;
+			std::cout << std::endl;
+		} while (answer == 'Y' || answer == 'y');
+		std::cout << std::endl << "You have reached this program's happy completion.  Good bye." << std::endl;
+	*/
+}

@@ -18,5 +18,13 @@
     <ClCompile Include="Project2-experiment.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Project2Imple.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Project2.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
