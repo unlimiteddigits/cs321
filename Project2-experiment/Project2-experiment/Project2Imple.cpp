@@ -38,7 +38,7 @@ void init_Window_Attrubutes(int argc, char** argv) {
 
 void other_init()
 {
-	glClearColor(0, 0, 0, 1.0);		/* Set background color */
+	glClearColor(0.2, 0.25, 0.3, 1);		/* Set background color */
 	glMatrixMode(GL_PROJECTION);		/* Modify Projection Matrix */
 	glLoadIdentity();				/* Set to identity matrix */
 	glOrtho(0.0, 200.0, 200.0, 0.0, -1.0, 1.0);	/* Orthographic viewing volume */
