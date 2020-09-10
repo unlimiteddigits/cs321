@@ -109,7 +109,7 @@ void myPolarPoint(GLfloat x, GLfloat y, GLfloat scale, GLfloat angle) {
 	
 	GLfloat i, x2, y2, radians;
 
-	radians = angle * M_PI / 180;
+	radians = angle * (GLfloat) (M_PI / 180);
 
 	x2 = x + scale * cos(radians);
 	y2 = y + scale * sin(radians);
@@ -185,7 +185,7 @@ void CreateArray()	{
    arraySize = (arrayRowCount ) * (arrayColCount);
    arrayPtr = (float *) malloc(arraySize*8); // 4 bytes for each int, 8 for float
    printf("\nPlease stand by, there are %d lines to process in the input file.\n", arrayRowCount + JCount);
-   printf("\%d lines contain coordinate info.\n", arrayRowCount );
+   printf("\n%d lines contain coordinate info.\n", arrayRowCount );
 }
 
 // Read data from the file to the dynamically allocated array
@@ -195,7 +195,8 @@ void ReadDataBySpace() {
 	std::string first_char_of_line;
 	char single_char_in_line;
 	char tempstr[256] = " ";
-	int i = 0, j = 0;
+	int i = 0;
+	unsigned int j = 0;
 
 	fp.seekg(fp.beg);  // rewind the file or fp.seekg(0);
 
@@ -249,7 +250,7 @@ void ReadDataBySpace() {
 
 // Reverse the order of the lines in the file and save with ".out" extension (and calculate the average )
 void ProcessData()	{
-	int i,j;
+	int i;
 	char line_out[256];
 	float current_x = 0, current_y = 0, current_z = 0;
 	float mean_x = 0, mean_y = 0, mean_z = 0;
