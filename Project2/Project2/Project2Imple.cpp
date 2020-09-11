@@ -212,7 +212,7 @@ void PromptFileName()	{
 	  //scanf_s("%s", &tempstr, 256);
 	  //Flip comments on the following 2 lines to debug faster and add them to the line above.
 	  //input_file_name = tempstr;
-	  input_file_name = "img4.dat";
+	  input_file_name = "img1.dat";
 
 	  fp.open(input_file_name);
 	  if (fp.is_open())
