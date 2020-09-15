@@ -25,12 +25,12 @@ float* arrayPtr;              // name of the array storing the vertices
 int arraySize=0;              // total size of the arrary
 int arrayRowCount = 0;        // number of vertices (array's rows)
 int arrayColCount = 4;        // number of coordinates on each line
-
-
+float x_position = -10;
+int iDirection = 1;
 
 void init_Window_Attrubutes(int argc, char** argv) {
 	glutInit(&argc, argv);
-	glutInitDisplayMode(GLUT_RGBA);
+	glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE);
 	glutInitWindowSize(500, 400);
 	glutInitWindowPosition(0, 0);
 	glutCreateWindow("Pre-Project #2 Experiment");
@@ -157,13 +157,13 @@ void displayPartA(void)
 			prev_fY = fY;
 			break;
 		case 2:
-			glVertex3f(prev_fX, prev_fY, 0.0);
-			glVertex3f(fX, fY, 0.0);
+			glVertex3f(prev_fX+ x_position, prev_fY, 0.0);
+			glVertex3f(fX+ x_position, fY, 0.0);
 			glEnd();
 			break;
 		default:
-			glVertex3f(prev_fX, prev_fY, 0.0);
-			glVertex3f(fX, fY, 0.0);
+			glVertex3f(prev_fX+ x_position, prev_fY, 0.0);
+			glVertex3f(fX+ x_position, fY, 0.0);
 			prev_fX = fX;
 			prev_fY = fY;
 			break;
@@ -173,7 +173,8 @@ void displayPartA(void)
 	//glRotatef(45.0, 0.f, 1.f, 0.f);/* orbit the Y axis */
 /* ...where orbitDegrees is derived from mouse motion */
 
-	glFlush();						/* Clear event buffer */
+	//glFlush();						/* Clear event buffer */
+	glutSwapBuffers();
 }
 
 void myPolarPoint(GLfloat x, GLfloat y, GLfloat scale, GLfloat angle) {
@@ -381,4 +382,26 @@ void ProcessData()	{
 	sprintf_s(line_out, "Mean Z-Coordinate = %7.1f", (mean_z / arrayRowCount));
 	fpOut << line_out << "\n";
 	fpOut.close();
+}
+
+void timer(int) {
+	glutPostRedisplay();
+	glutTimerFunc(1000 / 60, timer, 0);
+	switch (iDirection)
+	{
+	case 1:
+		if (x_position < 480)
+			x_position += 5;
+		else
+			iDirection = -1;
+		break;
+	case -1:
+		if (x_position >-500)
+			x_position -= 5;
+		else
+			iDirection = 1;
+		break;
+	default:
+		break;
+	}
 }

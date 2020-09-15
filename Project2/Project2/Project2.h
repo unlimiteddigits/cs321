@@ -24,5 +24,6 @@ void ProcessData();
 void closeFile();
 void FreeMem();
 void other_init();
+void timer(int);
 void myPolarPoint(GLfloat x, GLfloat y, GLfloat angle, GLfloat scale);
 #endif

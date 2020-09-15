@@ -38,6 +38,7 @@ int main(int argc, char** argv)
 	init_Window_Attrubutes(argc, argv);
 	other_init();
 	glutDisplayFunc(displayPartA);
+	glutTimerFunc(0, timer, 0);
 	glutMainLoop();
 	closeFile();
 	//FreeMem();
