@@ -33,7 +33,7 @@ void init_Window_Attrubutes(int argc, char** argv) {
 	glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE);
 	glutInitWindowSize(500, 400);
 	glutInitWindowPosition(0, 0);
-	glutCreateWindow("Pre-Project #2 Experiment");
+	glutCreateWindow("Project 2A");
 }
 
 void other_init()
@@ -42,17 +42,7 @@ void other_init()
 	glMatrixMode(GL_PROJECTION);		/* Modify Projection Matrix */
 	glLoadIdentity();				/* Set to identity matrix */
 	glOrtho(-2026.0, 2026.0, -2026.0, 2026.0, -1.0, 1.0);	/* Orthographic viewing volume */
-
-//	glMatrixMode(GL_MODELVIEW);
-}
-
-void Logo_init()
-{
-	glClearColor(0.2, 0.25, 0.3, 1);		/* Set background color */
-	glMatrixMode(GL_PROJECTION);		/* Modify Projection Matrix */
-	glLoadIdentity();				/* Set to identity matrix */
-	glOrtho(0.0, 200.0, 200.0, 0.0, -1.0, 1.0);	/* Orthographic viewing volume */
-
+	glutKeyboardFunc(myKeyboardEvent);
 //	glMatrixMode(GL_MODELVIEW);
 }
 
@@ -110,6 +100,12 @@ void displayPartA(void)
 	glutSwapBuffers();
 }
 
+void myKeyboardEvent(unsigned char key, int x, int y)
+{
+	printf("%c\n", key);
+	glutDestroyWindow(glutGetWindow());
+}
+
 void myPolarPoint(GLfloat x, GLfloat y, GLfloat scale, GLfloat angle) {
 	/*
 	x, y  = center of polar coordinate
@@ -143,10 +139,10 @@ void PromptFileName()	{
    while(flag)   {
       printf("Enter file name : ");
 
-	  //scanf_s("%s", &tempstr, 256);
+	  scanf_s("%s", &tempstr, 256);
 	  //Flip comments on the following 2 lines to debug faster and add them to the line above.
-	  //input_file_name = tempstr;
-	  input_file_name = "img1.dat";
+	  input_file_name = tempstr;
+	  //input_file_name = "img1.dat";
 
 	  fp.open(input_file_name);
 	  if (fp.is_open())

@@ -48,14 +48,18 @@ int main(int argc, char** argv)
 			PromptFileName();
 			CreateArray();
 			ReadDataBySpace();
-			ProcessData();
-			closeFile();
+			init_Window_Attrubutes(argc, argv);
+			other_init();
+			glutDisplayFunc(displayPartA);
+			glutTimerFunc(0, timer, 0);
+			glutMainLoop();
 			// repeat option for the grader's convenience.
 			std::cout << std::endl << "You have reached this file's happy completion." << std::endl;
 			std::cout << std::endl << "Would you like to try another file? [y/n]?";
 			std::cin >> answer;
 			std::cout << std::endl;
 		} while (answer == 'Y' || answer == 'y');
+		closeFile();
 		std::cout << std::endl << "You have reached this program's happy completion.  Good bye." << std::endl;
 	*/
 }

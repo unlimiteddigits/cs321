@@ -14,7 +14,7 @@ Mark Erickson
 
 void init_Window_Attrubutes(int argc, char** argv);
 void displayPartA(void);
-
+void myKeyboardEvent(unsigned char key, int x, int y);
 //Proj1
 void PromptFileName();
 void CreateArray();
