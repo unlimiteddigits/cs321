@@ -38,53 +38,48 @@ void init_Window_Attrubutes(int argc, char** argv) {
 
 void other_init()
 {
-	glClearColor(0.2, 0.25, 0.3, 1);		/* Set background color */
+	glClearColor(0.2, 0.25, 0.3, 1);	/* Set background color */
 	glMatrixMode(GL_PROJECTION);		/* Modify Projection Matrix */
-	glLoadIdentity();				/* Set to identity matrix */
+	glLoadIdentity();					/* Set to identity matrix */
 	glOrtho(-2026.0, 2026.0, -2026.0, 2026.0, -1.0, 1.0);	/* Orthographic viewing volume */
 	glutKeyboardFunc(myKeyboardEvent);
 //	glMatrixMode(GL_MODELVIEW);
 }
 
+// callback for Part A of the assignment
 void displayPartA(void)
 {
 	int i;
-	GLfloat camera[3] = { 1,1,1 };
 	GLfloat fX, fY, fZ;
 	GLfloat prev_fX=0, prev_fY=0, prev_fZ=0;
-	int fJump;
-
-	//gluLookAt(camera[0], camera[1], camera[2], /* look from camera XYZ */
-		//100, 95, 0, /* look at the origin */
-		//0, 0, 1); /* positive Y up vector */
+	int fJump=0;
 
 	glClear(GL_COLOR_BUFFER_BIT);	/* Clear color values */
-	glColor3f(0.0, 0.0, 1.0);			/* Set foreground color */
+	glColor3f(0.0, 0.0, 1.0);		/* Set foreground color */
 	glPointSize(4.0);				/* Set point size */
 
 	glColor3f(1.0, 0.0, 0.0);
 	glLineWidth(2.0);				/* Set line width */
 
-	//glBegin(GL_POINTS);
 	for (i = 0; i < arrayRowCount; i = i + 1) {
 		fX = (GLfloat) * (arrayPtr + i * arrayColCount);
 		fY = (GLfloat) * (arrayPtr + i * arrayColCount + 1);
 		fZ = (GLfloat) * (arrayPtr + i * arrayColCount + 2);
-		fJump = (int) *(arrayPtr + i * arrayColCount + 3);
+		fJump = (int) *(arrayPtr + i * arrayColCount + 3);   // 4th dimension of the array used to flag where the "J" was in the file
 
 		switch (fJump)
 		{
-		case 1:
+		case 1:                                 // Start drawing on the next vertex  We just jumped here (J)
 			glBegin(GL_LINES);
 			prev_fX = fX;
 			prev_fY = fY;
 			break;
-		case 2:
+		case 2:                                 // Create the last line segment before another jump (J)
 			glVertex3f(prev_fX+ x_position, prev_fY, 0.0);
 			glVertex3f(fX+ x_position, fY, 0.0);
 			glEnd();
 			break;
-		default:
+		default:                                // Normally just draw line segments and connect the dots.
 			glVertex3f(prev_fX+ x_position, prev_fY, 0.0);
 			glVertex3f(fX+ x_position, fY, 0.0);
 			prev_fX = fX;
@@ -93,43 +88,48 @@ void displayPartA(void)
 		}
 	}
 
-	//glRotatef(45.0, 0.f, 1.f, 0.f);/* orbit the Y axis */
-/* ...where orbitDegrees is derived from mouse motion */
-
 	//glFlush();						/* Clear event buffer */
 	glutSwapBuffers();
 }
 
+//for the exit using the keyboard
 void myKeyboardEvent(unsigned char key, int x, int y)
 {
-	printf("%c\n", key);
-	glutDestroyWindow(glutGetWindow());
+	printf("Quiting after user pressed %c\n", key);
+	glutLeaveMainLoop();
 }
 
-void myPolarPoint(GLfloat x, GLfloat y, GLfloat scale, GLfloat angle) {
-	/*
-	x, y  = center of polar coordinate
-	angle, scale  = polar vector from x, y
-	*/
-	
-	GLfloat i, x2, y2, radians;
-
-	radians = angle * (GLfloat) (M_PI / 180);
-
-	x2 = x + scale * cos(radians);
-	y2 = y + scale * sin(radians);
-
-	glBegin(GL_POINTS);
-	for (i = 0; i < 100; i = i + 10) {}
-		//glVertex3f(x, y, 0);
-		glVertex3f(x2, y2, 0);
-	
-	glEnd();
+//  for the animation which isn't a requirement of this part of the assignment
+void timer(int) {
+	if (iDirection != 0) {
+		glutPostRedisplay();
+		glutTimerFunc(1000 / 60, timer, 0);
+		switch (iDirection)
+		{
+		case 1:
+			if (x_position < 480)
+				x_position += 5;
+			else
+				iDirection = -1;
+			break;
+		case -1:
+			if (x_position > -500)
+				x_position -= 5;
+			else
+				iDirection = 1;
+			break;
+		default:
+			break;
+		}
+	}
 }
 
+//  -------------------------Everything below here is from project 1-------------------------
+//  ---- Except the 4th dimension of the array used to flag where the "J" was in the file----
+//  Search for "jumpFlag" in the ReadDataBySpace function to how the 4th dim was used.
+//  This 4th dim is a key component in the "displayPartA" Callback.
 
-
-//Proj1
+//from Project1
 // Prompt the file name
 // Enter the file name: img1.dat
 void PromptFileName()	{
@@ -162,10 +162,11 @@ void closeFile() {
 void FreeMem() {
 	arraySize = 0;       // Clear globals incase the user wants to run in a loop.
 	arrayRowCount = 0;   //  basic clean up...
-	arrayColCount = 3;
+	arrayColCount = 4;
 	free(arrayPtr);
 }
 
+//from Project1
 // Read information about the number of data in an input file
 // Allocate a dynamic memory that will hold input data
 void CreateArray()	{
@@ -196,6 +197,8 @@ void CreateArray()	{
    printf("\n%d lines contain coordinate info.\n", arrayRowCount );
 }
 
+
+//from Project1
 // Read data from the file to the dynamically allocated array
 void ReadDataBySpace() {
 	std::string line;
@@ -270,24 +273,3 @@ void ReadDataBySpace() {
 	*(arrayPtr + (arrayRowCount-1) * arrayColCount + 3) = 2;
 }
 
-void timer(int) {
-	glutPostRedisplay();
-	glutTimerFunc(1000 / 60, timer, 0);
-	switch (iDirection)
-	{
-	case 1:
-		if (x_position < 480)
-			x_position += 5;
-		else
-			iDirection = -1;
-		break;
-	case -1:
-		if (x_position >-500)
-			x_position -= 5;
-		else
-			iDirection = 1;
-		break;
-	default:
-		break;
-	}
-}
