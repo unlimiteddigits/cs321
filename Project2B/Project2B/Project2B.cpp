@@ -24,6 +24,7 @@ int main(int argc, char** argv)
 		PromptFileName();
 		CreateArray();
 		ReadDataBySpace();
+		//BuildForDisplay();
 		closeFile();
 		init_Window_Attrubutes(argc, argv);
 		other_init();
