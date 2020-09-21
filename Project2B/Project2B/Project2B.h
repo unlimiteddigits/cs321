@@ -27,6 +27,6 @@ void timer(int);
 void FixViewport(int width, int height);
 void DoBackgroundStuff();
 void myCloseEvent();
-void BuildForDisplay(void);
+//void BuildForDisplay(void);
 void ScaleMe(void);
 #endif

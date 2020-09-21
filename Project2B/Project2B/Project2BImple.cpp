@@ -43,7 +43,7 @@ void init_Window_Attrubutes(int argc, char** argv) {
 	glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE);
 	glutInitWindowSize(500, 400);
 	glutInitWindowPosition(0, 0);
-	glutCreateWindow("Project 2A");
+	glutCreateWindow("Project 2B");
 }
 
 void other_init()
@@ -63,12 +63,12 @@ void DoBackgroundStuff() {
 	
 	if (iDirection == 0)
 	{
-		printf("Doing idle Stuff...\n"); 
+		//printf("Doing idle Stuff...\n"); 
 		//glScalef(1/1.3, 1/1.3, 1);
-		glRotatef(10.0f, 0, 1.0, 0.0);
+		//glRotatef(10.0f, 0, 1.0, 0.0);
 	
-		glutSwapBuffers();
-		Sleep(50);
+		//glutSwapBuffers();
+		//Sleep(50);
 	}
 }
 
@@ -89,7 +89,7 @@ void displayPartA(void)
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);	/* Clear color values */
 	glColor3f(0.0, 0.0, 1.0);		/* Set foreground color */
 	glPointSize(4.0);				/* Set point size */
-	gluLookAt(0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f);
+	//gluLookAt(0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f);
 	glColor3f(1.0, 0.0, 0.0);
 	glLineWidth(2.0);				/* Set line width */
 
