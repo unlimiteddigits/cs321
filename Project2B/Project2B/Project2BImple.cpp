@@ -2,6 +2,7 @@
 Project 2B
 CS321
 Mark Erickson
+https://github.com/unlimiteddigits/cs321
 */
 
 // Source file including implementation of functions
@@ -139,9 +140,9 @@ void myCloseEvent()
 void timer(int n) {
 	if (iDirection != 0) {
 		glutPostRedisplay();
-		glutTimerFunc(1000 / 60, timer, 0);
-		xDistortion -= .1f;
-		yDistortion -= .1f;
+		glutTimerFunc(1000 / 60, timer, 0); // 60 refreshes per second
+		xDistortion -= .1f;                 // Reduce the reach of the "flame" in x
+		yDistortion -= .1f;                 // Reduce the reach of the "flame" in y
 		if (xDistortion <= 0)
 		{
 			iDirection = 0;
@@ -186,7 +187,8 @@ void PromptFileName()	{
 	int iChoice = 0;
 
 	while(flag)   {
-		printf("\033[2J\nProject 2B - Main menu.\n\n");
+		system("CLS");
+		printf("\nProject 2B - Main menu.\n\n");
 		printf("\tEnter 1 to load the file named img1.dat\n");
 		printf("\tEnter 2 to load the file named img2.dat\n");
 		printf("\tEnter 3 to load the file named img3.dat\n");

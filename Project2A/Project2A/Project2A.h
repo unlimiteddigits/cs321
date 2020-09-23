@@ -2,6 +2,7 @@
 Project 2A
 CS321
 Mark Erickson
+https://github.com/unlimiteddigits/cs321
 */
 
 // Header file including interface of functions

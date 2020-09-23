@@ -2,6 +2,7 @@
 Project 2
 CS321
 Mark Erickson
+https://github.com/unlimiteddigits/cs321
 */
 
 // Source file including implementation of functions
@@ -33,7 +34,7 @@ void init_Window_Attrubutes(int argc, char** argv) {
 	glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE);
 	glutInitWindowSize(500, 400);
 	glutInitWindowPosition(0, 0);
-	glutCreateWindow("Project 2A");
+	glutCreateWindow("Project 2A - Press any key to quit.");
 }
 
 void other_init()
@@ -142,6 +143,7 @@ void PromptFileName()	{
    char tempstr[256];
 	int iChoice = 0;
 	while(flag)   {
+		system("CLS");
 		printf("\033[2J\nProject 2B - Main menu.\n\n");
 		printf("\tEnter 1 to load the file named img1.dat\n");
 		printf("\tEnter 2 to load the file named img2.dat\n");
