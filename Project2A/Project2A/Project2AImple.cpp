@@ -38,27 +38,27 @@ void init_Window_Attrubutes(int argc, char** argv) {
 
 void other_init()
 {
-	glClearColor(0.2, 0.25, 0.3, 1);	/* Set background color */
+	glClearColor(0.2f, 0.25f, 0.3f, 1.0f);	/* Set background color */
 	glMatrixMode(GL_PROJECTION);		/* Modify Projection Matrix */
 	glLoadIdentity();					/* Set to identity matrix */
 	glOrtho(-2026.0, 2026.0, -2026.0, 2026.0, -1.0, 1.0);	/* Orthographic viewing volume */
-	glutKeyboardFunc(myKeyboardEvent);
-//	glMatrixMode(GL_MODELVIEW);
+	glutKeyboardFunc(myKeyboardEvent);  // run myKeyboardEvent when the user presses a key
+	glMatrixMode(GL_MODELVIEW);         // Get Back to the Modelview
 }
 
 // callback for Part A of the assignment
 void displayPartA(void)
 {
-	int i;
-	GLfloat fX, fY, fZ;
-	GLfloat prev_fX=0, prev_fY=0, prev_fZ=0;
-	int fJump=0;
+	int i;									// loop counter 
+	GLfloat fX, fY, fZ;						// place holders for the vertices 
+	GLfloat prev_fX=0, prev_fY=0, prev_fZ=0;//remember the last point encountered in the array (place holers for simple reading- memory is cheap)
+	int fJump=0;                            // Flag for encountering the "J"ump
 
 	glClear(GL_COLOR_BUFFER_BIT);	/* Clear color values */
 	glColor3f(0.0, 0.0, 1.0);		/* Set foreground color */
 	glPointSize(4.0);				/* Set point size */
 
-	glColor3f(1.0, 0.0, 0.0);
+	glColor3f(1.0, 0.0, 0.0);       // for the red - on blackish
 	glLineWidth(2.0);				/* Set line width */
 
 	for (i = 0; i < arrayRowCount; i = i + 1) {
@@ -95,7 +95,7 @@ void displayPartA(void)
 //for the exit using the keyboard
 void myKeyboardEvent(unsigned char key, int x, int y)
 {
-	printf("Quiting after user pressed %c\n", key);
+	printf("User pressed %c\n", key);
 	glutLeaveMainLoop();
 }
 
@@ -123,7 +123,12 @@ void timer(int) {
 		}
 	}
 }
-
+void FreeMem() {
+	arraySize = 0;       // Clear globals incase the user wants to run in a loop.
+	arrayRowCount = 0;   //  basic clean up...
+	arrayColCount = 4;
+	free(arrayPtr);
+}
 //  -------------------------Everything below here is from project 1-------------------------
 //  ---- Except the 4th dimension of the array used to flag where the "J" was in the file----
 //  Search for "jumpFlag" in the ReadDataBySpace function to how the 4th dim was used.
@@ -135,15 +140,39 @@ void timer(int) {
 void PromptFileName()	{
    int flag = 1;
    char tempstr[256];
+	int iChoice = 0;
+	while(flag)   {
+		printf("\033[2J\nProject 2B - Main menu.\n\n");
+		printf("\tEnter 1 to load the file named img1.dat\n");
+		printf("\tEnter 2 to load the file named img2.dat\n");
+		printf("\tEnter 3 to load the file named img3.dat\n");
+		printf("\tEnter 4 to load the file named img4.dat\n");
+		printf("\tEnter 5 to manually type the name of a file.\n\n");
 
-   while(flag)   {
-      printf("Enter file name : ");
+		scanf_s("%s", &tempstr, 256);
+		iChoice = atoi(tempstr);
 
-	  scanf_s("%s", &tempstr, 256);
-	  //Flip comments on the following 2 lines to debug faster and add them to the line above.
-	  input_file_name = tempstr;
-	  //input_file_name = "img1.dat";
-
+		switch (iChoice)
+		{
+		case 1:
+			input_file_name = "img1.dat";
+			break;
+		case 2:
+			input_file_name = "img2.dat";
+			break;
+		case 3:
+			input_file_name = "img3.dat";
+			break;
+		case 4:
+			input_file_name = "img4.dat";
+			break;
+		default:
+			printf("Enter file name : ");
+			scanf_s("%s", &tempstr, 256);
+			//Flip comments on the following 2 lines to debug faster and add them to the line above.
+			input_file_name = tempstr;
+			break;
+		}
 	  fp.open(input_file_name);
 	  if (fp.is_open())
 		  flag = 0;
@@ -159,12 +188,6 @@ void closeFile() {
 	fp.close();          // Be kind to your computer and look responsible.
 }
 
-void FreeMem() {
-	arraySize = 0;       // Clear globals incase the user wants to run in a loop.
-	arrayRowCount = 0;   //  basic clean up...
-	arrayColCount = 4;
-	free(arrayPtr);
-}
 
 //from Project1
 // Read information about the number of data in an input file

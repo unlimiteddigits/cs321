@@ -1,5 +1,5 @@
 /*
-Project 2A
+Project 2B
 CS321
 Mark Erickson
 */
@@ -24,4 +24,9 @@ void closeFile();
 void FreeMem();
 void other_init();
 void timer(int);
+void FixViewport(int width, int height);
+void DoBackgroundStuff();
+void myCloseEvent();
+//void BuildForDisplay(void);
+void ScaleMe(void);
 #endif

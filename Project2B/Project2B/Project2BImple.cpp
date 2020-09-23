@@ -25,72 +25,64 @@ float* arrayPtr;              // name of the array storing the vertices
 int arraySize=0;              // total size of the arrary
 int arrayRowCount = 0;        // number of vertices (array's rows)
 int arrayColCount = 4;        // number of coordinates on each line
-float x_position = 0;
-int iDirection = 1;
-float xScale = 1.0, yScale = 1.0;
+int iDirection = 1;           // Control of the timer / "direction of the wind"
+int iContinue = 1;            //  stop the rotation after the user presses a key 
+float xScale = 1.0, yScale = 1.0;  // Attempts to scale the image.
 bool enlarge = true; // true is enlarge, false is shrink
 
-float Distortion = 20.0;        // Starting point and reset value of distortion
-float xDistortion = Distortion; // Starting point of distortion on the x axis
-float yDistortion = Distortion; // Starting point of distortion on the y axis
-float xSkewMultiplier, ySkewMultiplier;  // variables for a random number to create the flicket in the wind effect
+GLfloat Distortion = 20.0;        // Starting point and reset value of distortion.  Or... The maximum distance the "flame" will flicker in the wind
+GLfloat xDistortion = Distortion; // Starting point of distortion on the x axis
+GLfloat yDistortion = Distortion; // Starting point of distortion on the y axis
+GLfloat xSkewMultiplier, ySkewMultiplier;  // variables for a random number to create the flicket in the wind effect
 
-struct vertex { GLfloat x, y, z; };
-//struct vertex imgMapFromFile[];
+//struct vertex { GLfloat x, y, z; };
+//struct vertex imgMapFromFile[];             // attempt the next step - if I forget to remove this please forgive me
 
 void init_Window_Attrubutes(int argc, char** argv) {
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE);
 	glutInitWindowSize(500, 400);
 	glutInitWindowPosition(0, 0);
-	glutCreateWindow("Project 2B");
+	glutCreateWindow("Project 2B - West winds...");
 }
 
 void other_init()
 {
-	glClearColor(0.2, 0.25, 0.3, 1.0);	/* Set background color */
+	glClearColor(0.2f, 0.25f, 0.3f, 1.0f);	/* Set background color */
 	glMatrixMode(GL_PROJECTION);		/* Modify Projection Matrix */
 	glLoadIdentity();					/* Set to identity matrix */
 	glOrtho(-2026.0, 2026.0, -2026.0, 2026.0, -1.0, 1.0);	/* Orthographic viewing volume */
-	glutKeyboardFunc(myKeyboardEvent);
-	glutReshapeFunc(FixViewport);
-	glutCloseFunc(myCloseEvent);
-	glutIdleFunc(DoBackgroundStuff);
-	//glMatrixMode(GL_MODELVIEW);
+	glutKeyboardFunc(myKeyboardEvent);  // run myKeyboardEvent when the user presses a key
+	glutCloseFunc(myCloseEvent);        // myCloseEvent set the flags needed to stop the timer function
+	glutIdleFunc(DoBackgroundStuff);    // playing with more functions
+	glMatrixMode(GL_MODELVIEW);         // Get Back to the Modelview
 }
 
 void DoBackgroundStuff() {
 	
-	if (iDirection == 0)
+	if (iDirection == 0)     // 
 	{
 		//printf("Doing idle Stuff...\n"); 
-		//glScalef(1/1.3, 1/1.3, 1);
-		//glRotatef(10.0f, 0, 1.0, 0.0);
-	
-		//glutSwapBuffers();
-		//Sleep(50);
 	}
 }
 
 void FixViewport(int width, int height) {
 	//find screensize and adjust viewport
-	
-	glViewport(0, 0, width, height);
+
 }
 
-// callback for Part A of the assignment
-void displayPartA(void)
+// callback for Part B of the assignment
+void displayPartB(void)
 {
-	int i;
-	GLfloat fX, fY, fZ;
-	GLfloat prev_fX=0, prev_fY=0, prev_fZ=0;
-	int fJump=0;
+	int i;									// loop counter 
+	GLfloat fX, fY, fZ;						// place holders for the vertices 
+	GLfloat prev_fX=0, prev_fY=0, prev_fZ=0;//remember the last point encountered in the array (place holers for simple reading- memory is cheap)
+	int fJump=0;                            // Flag for encountering the "J"ump
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);	/* Clear color values */
 	glColor3f(0.0, 0.0, 1.0);		/* Set foreground color */
 	glPointSize(4.0);				/* Set point size */
-	//gluLookAt(0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f);
-	glColor3f(1.0, 0.0, 0.0);
+	glColor3f(1.0, 0.0, 0.0);       // for the red - on blackish
 	glLineWidth(2.0);				/* Set line width */
 
 
@@ -119,13 +111,11 @@ void displayPartA(void)
 			prev_fY = fY;
 			break;
 		}
+
 	}
 
 	//glFlush();						/* Clear event buffer */
-	//glTranslatef(x_position, 0, 0);
-	// glScalef(1.0f, 1.0f, 1.0f);  // scale on the x, y, and z axis
-	//glScalef(xScale, yScale, 1.0f);
-	Sleep(50);
+	//Sleep(50);                  // the timer is restricted below
 	glutSwapBuffers();
 }
 
@@ -141,66 +131,31 @@ void myCloseEvent()
 {
 	printf("Quiting after user pressed a key or Window X\n");
 	iDirection = 0;
+	iContinue = 0;
 	//glutLeaveMainLoop();
 }
 
-void ScaleMe() {
-	if (enlarge == true && xScale < 1.250f)
-	{
-		xScale = 1.1f;
-		yScale = 1.1f;
-	}
-	else
-	{
-		enlarge = false; // Start Shrinking
-	}
-	if (enlarge == false && xScale > 0.55f)
-	{
-		xScale = 0.8f;
-		yScale = 0.8f;
-	}
-	else
-	{
-		enlarge = true; // Start enlarging
-	}
-	//glLoadIdentity();
-	glScaled(xScale, yScale, 1.0f);
-
-	
-}
-
-//  for the animation which isn't a requirement of this part of the assignment
+//  for the animation 
 void timer(int n) {
 	if (iDirection != 0) {
 		glutPostRedisplay();
-		//ScaleMe();
 		glutTimerFunc(1000 / 60, timer, 0);
-		xDistortion -= .1;
-		yDistortion -= .1;
+		xDistortion -= .1f;
+		yDistortion -= .1f;
 		if (xDistortion <= 0)
 		{
 			iDirection = 0;
 			xDistortion = 0;
 			yDistortion = 0;
 		}
-		xSkewMultiplier = rand() % 100;           // generate a number between 0 and 100
-		ySkewMultiplier = (rand() % 100) - 50.0;  // generate a number between -50 and 50
-		switch (iDirection)
-		{
-		case 1:
-			if (x_position < 480)
-				x_position += 5;
-			else
-				iDirection = -1;
-			break;
-		case -1:
-			if (x_position > -500)
-				x_position -= 5;
-			else
-				iDirection = 1; 
-			break;
-		default:
-			break;
+		xSkewMultiplier = (GLfloat) (rand() % 100);           // generate a number between 0 and 100
+		ySkewMultiplier = (GLfloat) (rand() % 100 - 50.0);    // generate a number between -50 and 50
+	}else{
+		if (iContinue == 1) {
+			glRotatef(1, 0.0f, 0.0f, 1.0f);                  // Rotate 1 deg at each time
+			glutPostRedisplay();                           
+			glutTimerFunc(1000 / 60, timer, 0);              // 60 refreshes per second
+			glutSetWindowTitle("Project 2B - The winds seems to have stopped.  Press any key to quit.");
 		}
 	}
 }
@@ -210,40 +165,68 @@ void FreeMem() {
 	arrayRowCount = 0;   //  basic clean up...
 	arrayColCount = 4;
 	iDirection = 1;
-	xDistortion = Distortion;
+	iContinue = 1;
+	xDistortion = Distortion;   // Restore the max distortion value for the next loop
 	yDistortion = Distortion;
 	free(arrayPtr);
 }
 
 //  -------------------------Everything below here is from project 1-------------------------
 //  ---- Except the 4th dimension of the array used to flag where the "J" was in the file----
+//  ---- And the menu system which could have been in project 1
 //  Search for "jumpFlag" in the ReadDataBySpace function to how the 4th dim was used.
-//  This 4th dim is a key component in the "displayPartA" Callback.
+//  This 4th dim is a key component in the "displayPartB" Callback.
 
 //from Project1
 // Prompt the file name
 // Enter the file name: img1.dat
 void PromptFileName()	{
-   int flag = 1;
-   char tempstr[256];
+	int flag = 1;
+	char tempstr[256];
+	int iChoice = 0;
 
-   while(flag)   {
-      printf("Enter file name : ");
+	while(flag)   {
+		printf("\033[2J\nProject 2B - Main menu.\n\n");
+		printf("\tEnter 1 to load the file named img1.dat\n");
+		printf("\tEnter 2 to load the file named img2.dat\n");
+		printf("\tEnter 3 to load the file named img3.dat\n");
+		printf("\tEnter 4 to load the file named img4.dat\n");
+		printf("\tEnter 5 to manually type the name of a file.\n\n");
 
-	  //scanf_s("%s", &tempstr, 256);
-	  //Flip comments on the following 2 lines to debug faster and add them to the line above.
-	  //input_file_name = tempstr;
-	  input_file_name = "img1.dat";
+		scanf_s("%s", &tempstr, 256);
+		iChoice = atoi(tempstr);
 
-	  fp.open(input_file_name);
-	  if (fp.is_open())
-		  flag = 0;
-	  else
-	  {
-		  printf("\nFile not Found.  Can't open %s!\n...Program is shutting down.\n", input_file_name.c_str());
-		  exit(0);
-	  }
-   } 
+		switch (iChoice)
+		{
+		case 1:
+			input_file_name = "img1.dat";
+			break;
+		case 2:
+			input_file_name = "img2.dat";
+			break;
+		case 3:
+			input_file_name = "img3.dat";
+			break;
+		case 4:
+			input_file_name = "img4.dat";
+			break;
+		default:
+			printf("Enter file name : ");
+			scanf_s("%s", &tempstr, 256);
+			//Flip comments on the following 2 lines to debug faster and add them to the line above.
+			input_file_name = tempstr;
+			break;
+		}
+
+		fp.open(input_file_name);
+		if (fp.is_open())
+			flag = 0;
+		else
+		{
+			printf("\nFile not Found.  Can't open %s!\n...Program is shutting down.\n", input_file_name.c_str());
+			exit(0);
+		}
+	} 
 }
 
 void closeFile() {

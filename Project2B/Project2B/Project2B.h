@@ -15,7 +15,7 @@ Mark Erickson
 #define EXAMPLE_H
 
 void init_Window_Attrubutes(int argc, char** argv);
-void displayPartA(void);
+void displayPartB(void);
 void myKeyboardEvent(unsigned char key, int x, int y);
 void PromptFileName();
 void CreateArray();

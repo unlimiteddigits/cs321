@@ -1,5 +1,5 @@
 /*
-Project 2A
+Project 2B
 CS321
 Mark Erickson
 */
@@ -12,11 +12,10 @@ Mark Erickson
 #include <string>
 #include <fstream>
 #include <GL/freeglut.h>
-
-#include "Project2A.h"
+#include "Project2B.h"
 
 // In the future this program could need command line functions
-//int main()
+// int main()
 int main(int argc, char** argv)
 {
 	char answer;
@@ -25,11 +24,13 @@ int main(int argc, char** argv)
 		PromptFileName();
 		CreateArray();
 		ReadDataBySpace();
+		//BuildForDisplay();
 		closeFile();
 		init_Window_Attrubutes(argc, argv);
 		other_init();
 		glutSetOption(GLUT_ACTION_ON_WINDOW_CLOSE, GLUT_ACTION_CONTINUE_EXECUTION);
 		glutDisplayFunc(displayPartA);
+		glutReshapeFunc(FixViewport);
 		glutTimerFunc(0, timer, 0);
 		glutMainLoop();
 		// repeat option for the grader's convenience.
