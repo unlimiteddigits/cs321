@@ -30,4 +30,5 @@ void DoBackgroundStuff();
 void myCloseEvent();
 void drawString(float x, float y, float z, char* mystring);
 void myMouseEvent(int button, int state, int x, int y);                //for extra credit
+void MouseMotionEvent(int x, int y);
 #endif

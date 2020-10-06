@@ -30,6 +30,8 @@ int iDirection = 1;           // Control of the timer / "direction of the wind"
 int iContinue = 1;            //  stop the rotation after the user presses a key 
 float xScale = 1.0, yScale = 1.0;  // Attempts to scale the image.
 bool enlarge = true; // true is enlarge, false is shrink
+float lastx, lasty; 
+float angle = 0.0;
 
 GLfloat Distortion = 5.0;        // Starting point and reset value of distortion.  Or... The maximum distance the "flame" will flicker in the wind
 GLfloat xDistortion = Distortion; // Starting point of distortion on the x axis
@@ -57,6 +59,7 @@ void other_init()
 	glLoadIdentity();					/* Set to identity matrix */
 	glOrtho(-2026.0, 2026.0, -2026.0, 2026.0, -2026.0, 2026.0);	/* Orthographic viewing volume */
 	glutMouseFunc(myMouseEvent);		// run myMouseEvent when the user uses the mouse
+	glutPassiveMotionFunc(MouseMotionEvent);
 	glutKeyboardFunc(myKeyboardEvent);  // run myKeyboardEvent when the user presses a key
 	glutCloseFunc(myCloseEvent);        // myCloseEvent set the flags needed to stop the timer function
 	glutIdleFunc(DoBackgroundStuff);    // playing with more functions
@@ -195,6 +198,22 @@ void myMouseEvent(int button, int state, int x, int y)
 	prev_y = y;
 	printf("x=%d y=%d direction=%d\n", x,y,direction);
 
+}
+
+void MouseMotionEvent(int x, int y)
+{
+	glutSetCursor(GLUT_CURSOR_FULL_CROSSHAIR);
+
+	int diffx = x - lastx; //check the difference between the current x and the last x position
+	int diffy = y - lasty; //check the difference between the current y and the last y position
+	lastx = x; //set lastx to the current x position
+	lasty = y; //set lasty to the current y position
+	angle += (float)diffy;
+	//RotY(angle / 20); //set the xrot to xrot with the addition of the difference in the y position
+	glRotatef(1, (sin(angle)), (cos(angle)), 0.0f);
+	angle += (float)diffx;
+	//RotY(angle / 20);    //set the xrot to yrot with the addition of the difference in the x position
+	glRotatef(1g, (cos(angle)), (sin(angle)), 0.0f);
 }
 
 //for Changing the view using the keyboard
