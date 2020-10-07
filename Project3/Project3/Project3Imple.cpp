@@ -210,10 +210,10 @@ void MouseMotionEvent(int x, int y)
 	lasty = y; //set lasty to the current y position
 	angle += (float)diffy;
 	//RotY(angle / 20); //set the xrot to xrot with the addition of the difference in the y position
-	glRotatef(1, (sin(angle)), (cos(angle)), 0.0f);
+	glRotatef(1, (cos(angle)), (sin(angle)), 0.0f);
 	angle += (float)diffx;
 	//RotY(angle / 20);    //set the xrot to yrot with the addition of the difference in the x position
-	glRotatef(1g, (cos(angle)), (sin(angle)), 0.0f);
+	glRotatef(1, (sin(angle)), (cos(angle)), 0.0f);
 }
 
 //for Changing the view using the keyboard

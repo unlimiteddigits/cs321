@@ -30,6 +30,7 @@ int iDirection = 1;           // Control of the timer / "direction of the wind"
 int iContinue = 1;            //  stop the rotation after the user presses a key 
 float xScale = 1.0, yScale = 1.0;  // Attempts to scale the image.
 bool enlarge = true; // true is enlarge, false is shrink
+int noFlameFlicker = 0;
 
 GLfloat Distortion = 20.0;        // Starting point and reset value of distortion.  Or... The maximum distance the "flame" will flicker in the wind
 GLfloat xDistortion = Distortion; // Starting point of distortion on the x axis
@@ -145,12 +146,18 @@ void timer(int n) {
 		yDistortion -= .1f;                 // Reduce the reach of the "flame" in y
 		if (xDistortion <= 0)
 		{
+			Sleep(500);                  // Sleep
 			iDirection = 0;
 			xDistortion = 0;
 			yDistortion = 0;
 		}
 		xSkewMultiplier = (GLfloat) (rand() % 100);           // generate a number between 0 and 100
 		ySkewMultiplier = (GLfloat) (rand() % 100 - 50.0);    // generate a number between -50 and 50
+		if (noFlameFlicker = 1)
+		{
+			xSkewMultiplier = 50.0;
+			ySkewMultiplier = 50.0;
+		}
 	}else{
 		if (iContinue == 1) {
 			glRotatef(1, 0.0f, 0.0f, 1.0f);                  // Rotate 1 deg at each time

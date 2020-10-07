@@ -102,7 +102,7 @@ void myKeyboardEvent(unsigned char key, int x, int y)
 
 //  for the animation which isn't a requirement of this part of the assignment
 void timer(int) {
-	if (iDirection != 0) {
+	if (iDirection == 0) {
 		glutPostRedisplay();
 		glutTimerFunc(1000 / 60, timer, 0);
 		switch (iDirection)
