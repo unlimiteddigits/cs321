@@ -34,7 +34,7 @@ int lastx=0, lasty=0;
 float angle = 0.0;
 int mouseButtonState = 0;
 
-GLfloat Distortion = 5.0;        // Starting point and reset value of distortion.  Or... The maximum distance the "flame" will flicker in the wind
+GLfloat Distortion = 1.0;        // Starting point and reset value of distortion.  Or... The maximum distance the "flame" will flicker in the wind
 GLfloat xDistortion = Distortion; // Starting point of distortion on the x axis
 GLfloat yDistortion = Distortion; // Starting point of distortion on the y axis
 GLfloat xSkewMultiplier, ySkewMultiplier;  // variables for a random number to create the flicket in the wind effect
@@ -44,6 +44,15 @@ float max_X=0, max_Y=0, max_Z=0;
 float min_X=0, min_Y=0, min_Z=0;
 int prev_x = 0, prev_y=0;
 
+typedef GLfloat vertex4[4];
+vertex4 myTransformMatrix[4] = {
+						{1.0, 0.0, 0.0, 0.0},
+						{0.0, 1.0, 0.0, 0,0},
+						{0.0, 0.0, 1.0, 0.0},
+						{0.0, 0.0, 0.0, 1.0} };
+
+
+
 void init_Window_Attrubutes(int argc, char** argv) {
 	int windowWidth = 500;
 	int windowHeight = 400;
@@ -52,7 +61,7 @@ void init_Window_Attrubutes(int argc, char** argv) {
 	glutInitWindowSize(windowWidth, windowHeight);
 	//x = (Screen Width - Window Width) / 2, y = (Screen Height - Window Height) / 2
 	glutInitWindowPosition((glutGet(GLUT_SCREEN_WIDTH) - windowWidth) / 2, (glutGet(GLUT_SCREEN_HEIGHT) - windowHeight) / 2);
-	glutCreateWindow("Project 2B - West winds...");
+	glutCreateWindow("Project 3");
 }
 
 void other_init()
@@ -95,6 +104,7 @@ void displayPartB(void)
 	char X_Label[] = "X-Axis";
 	char Y_Label[] = "Y-Axis";
 	char Z_Label[] = "Z-Axis";
+	vertex4 myVert;
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);	/* Clear color values */
 	glColor3f(0.0, 0.0, 1.0);		/* Set foreground color */
@@ -103,10 +113,17 @@ void displayPartB(void)
 	glLineWidth(2.0);				/* Set line width */
 
 	for (i = 0; i < arrayRowCount; i = i + 1) {
-		fX = (GLfloat) * (arrayPtr + i * arrayColCount);
-		fY = (GLfloat) * (arrayPtr + i * arrayColCount + 1);
-		fZ = (GLfloat) * (arrayPtr + i * arrayColCount + 2);
-		fJump = (int) *(arrayPtr + i * arrayColCount + 3);   // 4th dimension of the array used to flag where the "J" was in the file
+		myVert[0] = (GLfloat) * (arrayPtr + i * arrayColCount);
+		myVert[1] = (GLfloat) * (arrayPtr + i * arrayColCount + 1);
+		myVert[2] = (GLfloat) * (arrayPtr + i * arrayColCount + 2);
+		myVert[3] =  *(arrayPtr + i * arrayColCount + 3);   // 4th dimension of the array used to flag where the "J" was in the file
+
+		fX = myVert[0];
+		fY = myVert[1];
+		fZ = myVert[2];
+		fJump = (int) myVert[3];
+
+
 
 		switch (fJump)
 		{
@@ -209,7 +226,7 @@ void MouseMotionEvent(int x, int y)
 	int diffx = x - lastx; //check the difference between the current x and the last x position
 	int diffy = y - lasty; //check the difference between the current y and the last y position
 	angle = atan((float) diffy/ (float) diffx);    // This is radian
-	glRotatef(diffx, (sin(angle)), (cos(angle)), 0.0f);  // rotate the direction of the mouse on the screen, as apposed to the line below
+	glRotatef((GLfloat) diffx, (sin(angle)), (cos(angle)), 0.0f);  // rotate the direction of the mouse on the screen, as apposed to the line below
 	//glRotatef(diffx, (cos(angle)), (sin(angle)), 0.0f);  // Move about X when moving along X or rotate about X when moving left and right
 	//printf("x=%d, y=%d, mouseButtonState=%d, lastx=%d, lasty=%d, angle=%f\n", x, y, mouseButtonState, lastx, lasty, angle);
 }
@@ -298,6 +315,11 @@ void myKeyboardEvent(unsigned char key, int x, int y)
 
 }
 
+void myScalef(GLfloat x, GLfloat y, GLfloat z)
+{
+
+}
+
 //for the exit using the mouse click to X
 void myCloseEvent()
 {
@@ -327,7 +349,7 @@ void timer(int n) {
 			//glRotatef(1, 1.0f, 0.0f, 0.0f);                  // Rotate 1 deg at each time
 			glutPostRedisplay();                           
 			glutTimerFunc(1000 / 60, timer, 0);              // 60 refreshes per second
-			glutSetWindowTitle("Project 2B - The winds seems to have stopped.  Press any key to quit.");
+			glutSetWindowTitle("Project 3 - Press q to quit.");
 		}
 	}
 }
@@ -359,7 +381,7 @@ void PromptFileName()	{
 
 	while(flag)   {
 		system("CLS");
-		printf("\nProject 2B - Main menu.\n\n");
+		printf("\nProject 3 - Main menu.\n\n");
 		printf("\tEnter 1 to load the file named img1.dat\n");
 		printf("\tEnter 2 to load the file named img2.dat\n");
 		printf("\tEnter 3 to load the file named img3.dat\n");
@@ -492,7 +514,7 @@ void ReadDataBySpace() {
 			//printf("Found an empty line.\n");
 		}
 		else {
-			if (jumpFlag == 1) {
+			if (jumpFlag == 1 || i==0) {
 				*(arrayPtr + i * arrayColCount + 3) = 1;
 				jumpFlag = 0;
 				if (i > 0) {

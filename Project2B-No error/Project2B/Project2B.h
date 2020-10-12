@@ -1,5 +1,5 @@
 /*
-Project 3
+Project 2B
 CS321
 Mark Erickson
 https://github.com/unlimiteddigits/cs321
@@ -28,8 +28,6 @@ void timer(int);
 void FixViewport(int width, int height);
 void DoBackgroundStuff();
 void myCloseEvent();
-void drawString(float x, float y, float z, char* mystring);
-void myMouseEvent(int button, int state, int x, int y);                //for extra credit
-void MouseMotionEvent(int x, int y);
-void myScalef(GLfloat x, GLfloat y, GLfloat z);
+//void BuildForDisplay(void);
+void ScaleMe(void);
 #endif

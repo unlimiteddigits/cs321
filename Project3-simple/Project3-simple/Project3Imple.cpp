@@ -1,5 +1,5 @@
 /*
-Project 2B
+Project 3
 CS321
 Mark Erickson
 https://github.com/unlimiteddigits/cs321
@@ -15,7 +15,7 @@ https://github.com/unlimiteddigits/cs321
 #include <string>
 #include <fstream>
 #include <GL/freeglut.h>
-#include "Project2B.h"
+#include "Project3.h"
 
 std::ifstream fp;              // file pointer for input 
 std::ofstream fpOut;           // file pointer for output 
@@ -30,29 +30,42 @@ int iDirection = 1;           // Control of the timer / "direction of the wind"
 int iContinue = 1;            //  stop the rotation after the user presses a key 
 float xScale = 1.0, yScale = 1.0;  // Attempts to scale the image.
 bool enlarge = true; // true is enlarge, false is shrink
+int lastx=0, lasty=0; 
+float angle = 0.0;
+int mouseButtonState = 0;
 
-GLfloat Distortion = 20.0;        // Starting point and reset value of distortion.  Or... The maximum distance the "flame" will flicker in the wind
+GLfloat Distortion = 1.0;        // Starting point and reset value of distortion.  Or... The maximum distance the "flame" will flicker in the wind
 GLfloat xDistortion = Distortion; // Starting point of distortion on the x axis
 GLfloat yDistortion = Distortion; // Starting point of distortion on the y axis
 GLfloat xSkewMultiplier, ySkewMultiplier;  // variables for a random number to create the flicket in the wind effect
 
-//struct vertex { GLfloat x, y, z; };
-//struct vertex imgMapFromFile[];             // attempt the next step - if I forget to remove this please forgive me
+float average_X=0, average_Y=0, average_Z=0;
+float max_X=0, max_Y=0, max_Z=0;
+float min_X=0, min_Y=0, min_Z=0;
+int prev_x = 0, prev_y=0;
 
 void init_Window_Attrubutes(int argc, char** argv) {
+	int windowWidth = 500;
+	int windowHeight = 400;
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE);
-	glutInitWindowSize(500, 400);
-	glutInitWindowPosition(0, 0);
-	glutCreateWindow("Project 2B - West winds...");
+	glutInitWindowSize(windowWidth, windowHeight);
+	//x = (Screen Width - Window Width) / 2, y = (Screen Height - Window Height) / 2
+	glutInitWindowPosition((glutGet(GLUT_SCREEN_WIDTH) - windowWidth) / 2, (glutGet(GLUT_SCREEN_HEIGHT) - windowHeight) / 2);
+	glutCreateWindow("Project 3");
 }
 
 void other_init()
 {
-	glClearColor(0.2f, 0.25f, 0.3f, 1.0f);	/* Set background color */
+	glClearColor(0.2f, 0.25f, 0.3f, 1.0f);		/* Set background color black */
+	glClearColor(0.9f, 0.925f, 0.93f, 1.0f);	/* Re-Set background color  white*/
 	glMatrixMode(GL_PROJECTION);		/* Modify Projection Matrix */
 	glLoadIdentity();					/* Set to identity matrix */
-	glOrtho(-2026.0, 2026.0, -2026.0, 2026.0, -1.0, 1.0);	/* Orthographic viewing volume */
+	glOrtho(-2026.0, 2026.0, -2026.0, 2026.0, -3526.0, 3526.0);	/* Orthographic viewing volume */
+	glutMouseFunc(myMouseEvent);		// run myMouseEvent when the user uses the mouse
+	//glutPassiveMotionFunc(MouseMotionEvent);
+	glutMotionFunc(MouseMotionEvent);
+	
 	glutKeyboardFunc(myKeyboardEvent);  // run myKeyboardEvent when the user presses a key
 	glutCloseFunc(myCloseEvent);        // myCloseEvent set the flags needed to stop the timer function
 	glutIdleFunc(DoBackgroundStuff);    // playing with more functions
@@ -79,13 +92,15 @@ void displayPartB(void)
 	GLfloat fX, fY, fZ;						// place holders for the vertices 
 	GLfloat prev_fX=0, prev_fY=0, prev_fZ=0;//remember the last point encountered in the array (place holers for simple reading- memory is cheap)
 	int fJump=0;                            // Flag for encountering the "J"ump
+	char X_Label[] = "X-Axis";
+	char Y_Label[] = "Y-Axis";
+	char Z_Label[] = "Z-Axis";
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);	/* Clear color values */
 	glColor3f(0.0, 0.0, 1.0);		/* Set foreground color */
 	glPointSize(4.0);				/* Set point size */
 	glColor3f(1.0, 0.0, 0.0);       // for the red - on blackish
 	glLineWidth(2.0);				/* Set line width */
-
 
 	for (i = 0; i < arrayRowCount; i = i + 1) {
 		fX = (GLfloat) * (arrayPtr + i * arrayColCount);
@@ -99,32 +114,188 @@ void displayPartB(void)
 			glBegin(GL_LINES);
 			prev_fX = fX;
 			prev_fY = fY;
+			prev_fZ = fZ;
 			break;
 		case 2:                                 // Create the last line segment before another jump (J)
-			glVertex3f(prev_fX, prev_fY, 0.0);
-			glVertex3f(fX+ (xSkewMultiplier* xDistortion), fY + (ySkewMultiplier * yDistortion), 0.0);
+			glVertex3f(prev_fX, prev_fY, prev_fZ);
+			glVertex3f(fX+ (xSkewMultiplier* xDistortion), fY + (ySkewMultiplier * yDistortion), fZ);
 			glEnd();
 			break;
 		default:                                // Normally just draw line segments and connect the dots.
-			glVertex3f(prev_fX, prev_fY, 0.0);
-			glVertex3f(fX+ (xSkewMultiplier * xDistortion), fY + (ySkewMultiplier * yDistortion), 0.0);
+			glVertex3f(prev_fX, prev_fY, prev_fZ);
+			glVertex3f(fX+ (xSkewMultiplier * xDistortion), fY + (ySkewMultiplier * yDistortion), fZ);
 			prev_fX = fX;
 			prev_fY = fY;
+			prev_fZ = fZ;
 			break;
 		}
 
 	}
+	glColor3f(0.0, 0.0, 1.0);       // for the blue - on blackish
 
-	//glFlush();						/* Clear event buffer */
+	//glEnable(GL_LINE_STIPPLE);
+	glBegin(GL_LINES);
+	glVertex3f(0.0f, 0.0f, 0.0f);
+	glVertex3f(1000.0f, 0.0f, 0.0f);
+	glEnd();
+	
+	//sprintf("", Axis_Label, "X-Axis");
+
+	drawString(1000,100,0, X_Label);
+
+	//Axis_Label = "Y-Axis";
+	drawString(100, 1000, 0, Y_Label);
+
+	//Axis_Label = "Z-Axis";
+	drawString(100, 100, 1000, Z_Label);
+
+
+	glBegin(GL_LINES);
+	glVertex3f(0.0f, 0.0f, 0.0f);
+	glVertex3f(0.0f, 1000.0f, 0.0f);
+	glEnd();
+	glBegin(GL_LINES);
+	glVertex3f(0.0f, 0.0f, 0.0f);
+	glVertex3f(0.0f, 0.0f, 1000.0f);
+	glEnd();
+	//glDisable(GL_LINE_STIPPLE);
+
+	glFlush();						/* Clear event buffer */
 	//Sleep(50);                  // the timer is restricted below
 	glutSwapBuffers();
 }
 
-//for the exit using the keyboard
+void drawString(float x, float y, float z, char* mystring) {
+	glRasterPos3f(x, y, z);
+
+	for (char* c = mystring; *c != '\0'; c++) {
+		glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, *c);  // Updates the position
+	}
+}
+
+//for Changing the view using the mouse
+void myMouseEvent(int button, int state, int x, int y)
+{
+	switch (button) {
+	case GLUT_LEFT_BUTTON:
+		//printf("Left Button ");
+		if (state)
+		{
+			//printf("Up\n");
+			mouseButtonState = 0;
+		}
+		else
+		{
+			//printf("Down\n");
+			if (mouseButtonState==0)
+			{
+				//printf("Setting last xy\n");;
+				mouseButtonState = 1;
+				lastx = x; //set lastx to the current x position
+				lasty = y; //set lasty to the current y position
+			}
+		}
+		break;
+	case GLUT_MIDDLE_BUTTON: printf("Middle Button %d\n", state); break;
+	case GLUT_RIGHT_BUTTON:  printf("Right Button %d\n",state); break;
+	}
+	//printf("---------> x=%d, y=%d, button=%d, state=%d, lastx=%d, lasty=%d\n", x, y, button, state, lastx, lasty);
+}
+
+void MouseMotionEvent(int x, int y)
+{
+	glutSetCursor(GLUT_CURSOR_FULL_CROSSHAIR);
+
+	int diffx = x - lastx; //check the difference between the current x and the last x position
+	int diffy = y - lasty; //check the difference between the current y and the last y position
+	angle = atan((float) diffy/ (float) diffx);    // This is radian
+	glRotatef((GLfloat) diffx, (sin(angle)), (cos(angle)), 0.0f);  // rotate the direction of the mouse on the screen, as apposed to the line below
+	//glRotatef(diffx, (cos(angle)), (sin(angle)), 0.0f);  // Move about X when moving along X or rotate about X when moving left and right
+	//printf("x=%d, y=%d, mouseButtonState=%d, lastx=%d, lasty=%d, angle=%f\n", x, y, mouseButtonState, lastx, lasty, angle);
+}
+
+//for Changing the view using the keyboard
 void myKeyboardEvent(unsigned char key, int x, int y)
 {
-	printf("User pressed %c\n", key);
-	glutLeaveMainLoop();
+	double width = abs(min_X) + abs(max_X);
+	double height = abs(min_Y) + abs(max_Y);
+	double depth = abs(min_Z) + abs(max_Z);
+
+	switch (key) {
+		// Move img up
+	case 'u': case 'U':
+		glTranslatef(0.0f, (float) (height*.1), 0.0f);
+		break;
+
+		// Move img left
+	case 'l': case 'L':
+		glTranslatef((float) -(width * .1), 0.0f, 0.0f);
+		break;
+
+		// Move img down
+	case 'd': case 'D':
+		glTranslatef(0.0f, (float) -(height * .1), 0.0f);
+		break;
+
+		// Move img right
+	case 'r': case 'R':
+		glTranslatef((float) (width * .1), 0.0f, 0.0f);
+		break;
+
+		//  Enlarge the img 
+	case '+':
+		glScalef(1.1f, 1.1f, 1.1f);
+		break;
+
+		// shrink the img
+	case '-':
+		glScalef(0.9f, 0.9f, 0.9f);
+		break;
+
+		// Rotate 15 degrees in the X positive axis
+	case 'X':
+		glRotatef(15.0f,1.0f,0.0f,0.0f);
+		break;
+
+		// Rotate 15 degrees in the X negative axis
+	case 'x':
+		glRotatef(-15.0f, 1.0f, 0.0f, 0.0f);
+		break;
+
+		// Rotate 15 degrees in the X positive axis
+	case 'Y':
+		glRotatef(15.0f, 0.0f, 1.0f, 0.0f);
+		break;
+
+		// Rotate 15 degrees in the X negative axis
+	case 'y':
+		glRotatef(-15.0f, 0.0f, 1.0f, 0.0f);
+		break;
+
+		// Rotate 15 degrees in the X positive axis
+	case 'Z':
+		glRotatef(15.0f, 0.0f, 0.0f, 1.0f);
+		break;
+
+		// Rotate 15 degrees in the X negative axis
+	case 'z':
+		glRotatef(-15.0f, 0.0f, 0.0f, 1.0f);
+		break;
+
+		// This will reset the img back to its original position.
+		// Since everything done is only stored in the state of openGL we can
+		// simply reset the state to move the img back to its original position.
+	case 'i': case 'I':
+		glLoadIdentity();
+		break;
+
+		// If the 'q' or 'Q' key is pressed, the program exits.
+	case 'q': case 'Q':
+		printf("User pressed %c\n", key);
+		glutLeaveMainLoop();   // Used instead of exit to allow looping in the main for selecting other img files.
+		//exit(0);
+	}
+
 }
 
 //for the exit using the mouse click to X
@@ -153,10 +324,10 @@ void timer(int n) {
 		ySkewMultiplier = (GLfloat) (rand() % 100 - 50.0);    // generate a number between -50 and 50
 	}else{
 		if (iContinue == 1) {
-			glRotatef(1, 0.0f, 0.0f, 1.0f);                  // Rotate 1 deg at each time
+			//glRotatef(1, 1.0f, 0.0f, 0.0f);                  // Rotate 1 deg at each time
 			glutPostRedisplay();                           
 			glutTimerFunc(1000 / 60, timer, 0);              // 60 refreshes per second
-			glutSetWindowTitle("Project 2B - The winds seems to have stopped.  Press any key to quit.");
+			glutSetWindowTitle("Project 3 - Press q to quit.");
 		}
 	}
 }
@@ -188,7 +359,7 @@ void PromptFileName()	{
 
 	while(flag)   {
 		system("CLS");
-		printf("\nProject 2B - Main menu.\n\n");
+		printf("\nProject 3 - Main menu.\n\n");
 		printf("\tEnter 1 to load the file named img1.dat\n");
 		printf("\tEnter 2 to load the file named img2.dat\n");
 		printf("\tEnter 3 to load the file named img3.dat\n");
@@ -278,6 +449,9 @@ void ReadDataBySpace() {
 	int i = 0;
 	unsigned int j = 0;
 	int jumpFlag = 0;
+	float sum_X = 0, sum_Y = 0, sum_Z = 0;
+	GLfloat temp_X = 0, temp_Y = 0, temp_Z = 0;
+	int ave_count = 0;
 
 	fp.seekg(fp.beg);  // rewind the file or fp.seekg(0);
 
@@ -318,7 +492,7 @@ void ReadDataBySpace() {
 			//printf("Found an empty line.\n");
 		}
 		else {
-			if (jumpFlag == 1) {
+			if (jumpFlag == 1 || i==0) {
 				*(arrayPtr + i * arrayColCount + 3) = 1;
 				jumpFlag = 0;
 				if (i > 0) {
@@ -329,16 +503,41 @@ void ReadDataBySpace() {
 				*(arrayPtr + i * arrayColCount + 3) = 0;
 			}
 			// arrayPtr[i] and *(arrayPtr+i) can be used interchangeably 
-			sscanf_s(line.c_str(), "%f %f %f", (arrayPtr + i * arrayColCount), (arrayPtr + i * arrayColCount + 1), (arrayPtr + i * arrayColCount + 2));
+
+			sscanf_s(line.c_str(), "%f %f %f", &temp_X, &temp_Y, &temp_Z);
+			arrayPtr[i * arrayColCount] = temp_X ;
+			arrayPtr[i * arrayColCount + 1]=temp_Y ;
+			arrayPtr[i * arrayColCount + 2]= temp_Z;
+
+			if (temp_X > max_X) max_X = temp_X;
+			if (temp_Y > max_Y) max_Y = temp_Y;
+			if (temp_Z > max_Z) max_Z = temp_Z;
+			if (temp_X < min_X) min_X = temp_X;
+			if (temp_Y < min_Y) min_Y = temp_Y;
+			if (temp_Z < min_Z) min_Z = temp_Z;
+
+			sum_X += temp_X;
+			sum_Y += temp_Y;
+			sum_Z += temp_Z;
+			ave_count++;
+
+
+
 			// more debug stuff here
 			//printf("i=%d array=X%.1f Y%.1f Z%.1f\n", i, *(arrayPtr + i * arrayColCount), *(arrayPtr + i * arrayColCount + 1), *(arrayPtr + i * arrayColCount + 2));
 			//printf("arra=X%f Y%f Z%f J%f\n", arrayPtr[i * arrayColCount], arrayPtr[i * arrayColCount + 1], arrayPtr[i * arrayColCount + 2], arrayPtr[i * arrayColCount + 3]);
 			//printf("\n\n");
 			i++;
 		}
-	
 	}
 	//printf("Loop ends.\n");
 	*(arrayPtr + (arrayRowCount-1) * arrayColCount + 3) = 2;
+	average_X = sum_X / ave_count;
+	average_Y = sum_Y / ave_count;
+	average_Z = sum_Z / ave_count;
+	printf("Average_X=%f", average_X);
+	printf("Average_Y=%f", average_Y);
+	printf("Average_Z=%f\n", average_Z);
+	printf("Min_X=%f, Max_X=%f, Min_Y=%f, Max_Y=%f, Min_Z=%f, Max_Z=%f\n ", min_X, max_X, min_Y, max_Y, min_Z, max_Z );
 }
 
