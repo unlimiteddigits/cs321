@@ -62,6 +62,7 @@ void displayPartA(void)
 	glColor3f(1.0, 0.0, 0.0);       // for the red - on blackish
 	glLineWidth(2.0);				/* Set line width */
 
+//	glBegin(GL_LINES);
 	for (i = 0; i < arrayRowCount; i = i + 1) {
 		fX = (GLfloat) * (arrayPtr + i * arrayColCount);
 		fY = (GLfloat) * (arrayPtr + i * arrayColCount + 1);
@@ -88,6 +89,7 @@ void displayPartA(void)
 			break;
 		}
 	}
+//	glEnd();
 
 	//glFlush();						/* Clear event buffer */
 	glutSwapBuffers();
@@ -274,7 +276,7 @@ void ReadDataBySpace() {
 			//printf("Found an empty line.\n");
 		}
 		else {
-			if (jumpFlag == 1) {
+			if (jumpFlag == 1 || i==0) {
 				*(arrayPtr + i * arrayColCount + 3) = 1;
 				jumpFlag = 0;
 				if (i > 0) {
