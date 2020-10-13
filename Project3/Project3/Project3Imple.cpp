@@ -46,10 +46,10 @@ int prev_x = 0, prev_y=0;
 
 typedef GLfloat vertex4[4];
 vertex4 myTransformMatrix[4] = {
-						{1.0, 0.0, 0.0, 0.0},
-						{0.0, 1.0, 0.0, 0,0},
-						{0.0, 0.0, 1.0, 0.0},
-						{0.0, 0.0, 0.0, 1.0} };
+						{1.0f, 0.0f, 0.0f, 0.0f},
+						{0.0f, 1.0f, 0.0f, 0.0f},
+						{0.0f, 0.0f, 1.0f, 0.0f},
+						{0.0f, 0.0f, 0.0f, 1.0f} };
 
 
 
@@ -97,14 +97,15 @@ void FixViewport(int width, int height) {
 // callback for Part B of the assignment
 void displayPartB(void)
 {
-	int i;									// loop counter 
+	int i, row,column;									// loop counter 
 	GLfloat fX, fY, fZ;						// place holders for the vertices 
 	GLfloat prev_fX=0, prev_fY=0, prev_fZ=0;//remember the last point encountered in the array (place holers for simple reading- memory is cheap)
 	int fJump=0;                            // Flag for encountering the "J"ump
 	char X_Label[] = "X-Axis";
 	char Y_Label[] = "Y-Axis";
 	char Z_Label[] = "Z-Axis";
-	vertex4 myVert;
+	vertex4 myVertMatrix;
+	vertex4 myResultMatrix = { 0,0,0,0 };
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);	/* Clear color values */
 	glColor3f(0.0, 0.0, 1.0);		/* Set foreground color */
@@ -112,23 +113,31 @@ void displayPartB(void)
 	glColor3f(1.0, 0.0, 0.0);       // for the red - on blackish
 	glLineWidth(2.0);				/* Set line width */
 
+	glBegin(GL_LINES);
 	for (i = 0; i < arrayRowCount; i = i + 1) {
-		myVert[0] = (GLfloat) * (arrayPtr + i * arrayColCount);
-		myVert[1] = (GLfloat) * (arrayPtr + i * arrayColCount + 1);
-		myVert[2] = (GLfloat) * (arrayPtr + i * arrayColCount + 2);
-		myVert[3] =  *(arrayPtr + i * arrayColCount + 3);   // 4th dimension of the array used to flag where the "J" was in the file
+		myVertMatrix[0] = (GLfloat) * (arrayPtr + i * arrayColCount);
+		myVertMatrix[1] = (GLfloat) * (arrayPtr + i * arrayColCount + 1);
+		myVertMatrix[2] = (GLfloat) * (arrayPtr + i * arrayColCount + 2);
+		myVertMatrix[3] =  *(arrayPtr + i * arrayColCount + 3);   // 4th dimension of the array used to flag where the "J" was in the file
 
-		fX = myVert[0];
-		fY = myVert[1];
-		fZ = myVert[2];
-		fJump = (int) myVert[3];
+		//myVert = myTransformMatrix * myVert;
+		// Multiplying matrix a and b and storing in array mult.
+		for (row = 0; row < 4; ++row) myResultMatrix[row] = 0;
+		for (row = 0; row < 4; ++row)
+			for (column = 0; column < 4; ++column)
+				{
+					myResultMatrix[row] += myTransformMatrix[row][column] * myVertMatrix[row];
+				}
 
-
+		fX = (GLfloat) myResultMatrix[0];
+		fY = (GLfloat) myResultMatrix[1];
+		fZ = (GLfloat) myResultMatrix[2];
+		fJump = (int) myResultMatrix[3];
 
 		switch (fJump)
 		{
 		case 1:                                 // Start drawing on the next vertex  We just jumped here (J)
-			glBegin(GL_LINES);
+//			glBegin(GL_LINES);
 			prev_fX = fX;
 			prev_fY = fY;
 			prev_fZ = fZ;
@@ -136,7 +145,7 @@ void displayPartB(void)
 		case 2:                                 // Create the last line segment before another jump (J)
 			glVertex3f(prev_fX, prev_fY, prev_fZ);
 			glVertex3f(fX+ (xSkewMultiplier* xDistortion), fY + (ySkewMultiplier * yDistortion), fZ);
-			glEnd();
+//			glEnd();
 			break;
 		default:                                // Normally just draw line segments and connect the dots.
 			glVertex3f(prev_fX, prev_fY, prev_fZ);
@@ -148,6 +157,7 @@ void displayPartB(void)
 		}
 
 	}
+	glEnd();
 	glColor3f(0.0, 0.0, 1.0);       // for the blue - on blackish
 
 	//glEnable(GL_LINE_STIPPLE);
@@ -241,32 +251,38 @@ void myKeyboardEvent(unsigned char key, int x, int y)
 	switch (key) {
 		// Move img up
 	case 'u': case 'U':
-		glTranslatef(0.0f, (float) (height*.1), 0.0f);
+		TranslateMyTransformMatrix(0.0f, (float)(height * .1), 0.0f);
+		//glTranslatef(0.0f, (float)(height * .1), 0.0f);
 		break;
 
 		// Move img left
 	case 'l': case 'L':
-		glTranslatef((float) -(width * .1), 0.0f, 0.0f);
+		TranslateMyTransformMatrix((float)-(width * .1), 0.0f, 0.0f);
+		//glTranslatef((float)-(width * .1), 0.0f, 0.0f);
 		break;
 
 		// Move img down
 	case 'd': case 'D':
-		glTranslatef(0.0f, (float) -(height * .1), 0.0f);
+		TranslateMyTransformMatrix(0.0f, (float)-(height * .1), 0.0f);
+		//glTranslatef(0.0f, (float)-(height * .1), 0.0f);
 		break;
 
 		// Move img right
 	case 'r': case 'R':
-		glTranslatef((float) (width * .1), 0.0f, 0.0f);
+		TranslateMyTransformMatrix((float)(width * .1), 0.0f, 0.0f);
+		//glTranslatef((float)(width * .1), 0.0f, 0.0f);
 		break;
 
 		//  Enlarge the img 
 	case '+':
-		glScalef(1.1f, 1.1f, 1.1f);
+		ScaleMyTransformMatrix(1.1f, 1.1f, 1.1f);
+		//glScalef(1.1f, 1.1f, 1.1f);
 		break;
 
 		// shrink the img
 	case '-':
-		glScalef(0.9f, 0.9f, 0.9f);
+		ScaleMyTransformMatrix(0.9f, 0.9f, 0.9f);
+		//glScalef(0.9f, 0.9f, 0.9f);
 		break;
 
 		// Rotate 15 degrees in the X positive axis
@@ -303,7 +319,8 @@ void myKeyboardEvent(unsigned char key, int x, int y)
 		// Since everything done is only stored in the state of openGL we can
 		// simply reset the state to move the img back to its original position.
 	case 'i': case 'I':
-		glLoadIdentity();
+		IndentifyMyTransformMatrix();
+		//glLoadIdentity();
 		break;
 
 		// If the 'q' or 'Q' key is pressed, the program exits.
@@ -315,9 +332,34 @@ void myKeyboardEvent(unsigned char key, int x, int y)
 
 }
 
-void myScalef(GLfloat x, GLfloat y, GLfloat z)
-{
 
+void TranslateMyTransformMatrix(GLfloat x, GLfloat y, GLfloat z)
+{
+	//should work like the built in glTranslatef(0.0f, (float)(height * .1), 0.0f);
+	myTransformMatrix[0][3] += x;
+	myTransformMatrix[1][3] += y;
+	myTransformMatrix[2][3] += z;
+}
+
+void ScaleMyTransformMatrix(GLfloat myScaleX, GLfloat myScaleY, GLfloat myScaleZ)
+{
+	// should work like the built in glScalef(1.1f, 1.1f, 1.1f);
+	myTransformMatrix[0][0] = myTransformMatrix[0][0] * myScaleX;
+	myTransformMatrix[1][1] = myTransformMatrix[1][1] * myScaleX;
+	myTransformMatrix[2][2] = myTransformMatrix[2][2] * myScaleX;
+}
+
+void IndentifyMyTransformMatrix()
+{
+	// should work like the built in glLoadIdentity();
+	int row, column;
+
+	for (row = 0; row < 4; ++row)
+		for (column = 0; column < 4; ++column) myTransformMatrix[row][column] = 0;
+	myTransformMatrix[0][0] = 1;
+	myTransformMatrix[1][1] = 1;
+	myTransformMatrix[2][2] = 1;
+	myTransformMatrix[3][3] = 1;
 }
 
 //for the exit using the mouse click to X
