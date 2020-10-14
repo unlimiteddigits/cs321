@@ -135,12 +135,12 @@ void displayPartB(void)
 		{
 			for (column = 0; column < 4; ++column)
 			{
-				test1 = myTransformMatrix[row][column] * myVertMatrix[column];
-				test2 += test1;
-				myResultMatrix[row] = test2;
-				//myResultMatrix[row] += myTransformMatrix[row][column] * myVertMatrix[row];
+				//test1 = myTransformMatrix[row][column] * myVertMatrix[column];
+				//test2 += test1;
+				//myResultMatrix[row] = test2;
+				myResultMatrix[row] += myTransformMatrix[row][column] * myVertMatrix[column];
 			}
-			test2 = 0;
+			//test2 = 0;
 		}
 		fX = (GLfloat) myResultMatrix[0];
 		fY = (GLfloat) myResultMatrix[1];
@@ -181,7 +181,6 @@ void displayPartB(void)
 	glEnd();
 	
 	//sprintf("", Axis_Label, "X-Axis");
-
 	drawString(1000,100,0, X_Label);
 
 	//Axis_Label = "Y-Axis";
@@ -189,7 +188,6 @@ void displayPartB(void)
 
 	//Axis_Label = "Z-Axis";
 	drawString(100, 100, 1000, Z_Label);
-
 
 	glBegin(GL_LINES);
 	glVertex3f(0.0f, 0.0f, 0.0f);
@@ -408,6 +406,7 @@ void ScaleMyTransformMatrix(GLfloat myScaleX, GLfloat myScaleY, GLfloat myScaleZ
 void IndentifyMyTransformMatrix()
 {
 	// should work like the built in glLoadIdentity();
+	//  reset all variables and the matrix
 	int row, column;
 
 	for (row = 0; row < 4; ++row)
@@ -648,8 +647,6 @@ void ReadDataBySpace() {
 			sum_Y += temp_Y;
 			sum_Z += temp_Z;
 			ave_count++;
-
-
 
 			// more debug stuff here
 			//printf("i=%d array=X%.1f Y%.1f Z%.1f\n", i, *(arrayPtr + i * arrayColCount), *(arrayPtr + i * arrayColCount + 1), *(arrayPtr + i * arrayColCount + 2));
