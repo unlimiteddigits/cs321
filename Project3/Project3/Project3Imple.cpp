@@ -42,7 +42,10 @@ GLfloat xSkewMultiplier, ySkewMultiplier;  // variables for a random number to c
 float average_X=0, average_Y=0, average_Z=0;
 float max_X=0, max_Y=0, max_Z=0;
 float min_X=0, min_Y=0, min_Z=0;
-int prev_x = 0, prev_y=0;
+GLfloat prev_x = 0.0, prev_y=0.0, prev_z=0.0;
+GLfloat myPrevScaleX=1.0, myPrevScaleY=1.0, myPrevScaleZ=1.0;
+
+GLfloat totalAngle = 0;
 
 typedef GLfloat vertex4[4];
 vertex4 myTransformMatrix[4] = {
@@ -106,6 +109,7 @@ void displayPartB(void)
 	char Z_Label[] = "Z-Axis";
 	vertex4 myVertMatrix;
 	vertex4 myResultMatrix = { 0,0,0,0 };
+	GLfloat test1=0, test2=0;
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);	/* Clear color values */
 	glColor3f(0.0, 0.0, 1.0);		/* Set foreground color */
@@ -115,25 +119,35 @@ void displayPartB(void)
 
 	glBegin(GL_LINES);
 	for (i = 0; i < arrayRowCount; i = i + 1) {
+		fX = (GLfloat) * (arrayPtr + i * arrayColCount);
+		fY = (GLfloat) * (arrayPtr + i * arrayColCount + 1);
+		fZ = *(arrayPtr + i * arrayColCount + 2);
 		myVertMatrix[0] = (GLfloat) * (arrayPtr + i * arrayColCount);
 		myVertMatrix[1] = (GLfloat) * (arrayPtr + i * arrayColCount + 1);
-		myVertMatrix[2] = (GLfloat) * (arrayPtr + i * arrayColCount + 2);
-		myVertMatrix[3] =  *(arrayPtr + i * arrayColCount + 3);   // 4th dimension of the array used to flag where the "J" was in the file
+		myVertMatrix[2] = *(arrayPtr + i * arrayColCount + 2);
+		myVertMatrix[3] = 1;
+		fJump =(int) *(arrayPtr + i * arrayColCount + 3);   // 4th dimension of the array used to flag where the "J" was in the file
 
 		//myVert = myTransformMatrix * myVert;
 		// Multiplying matrix a and b and storing in array mult.
 		for (row = 0; row < 4; ++row) myResultMatrix[row] = 0;
 		for (row = 0; row < 4; ++row)
+		{
 			for (column = 0; column < 4; ++column)
-				{
-					myResultMatrix[row] += myTransformMatrix[row][column] * myVertMatrix[row];
-				}
-
+			{
+				test1 = myTransformMatrix[row][column] * myVertMatrix[column];
+				test2 += test1;
+				myResultMatrix[row] = test2;
+				//myResultMatrix[row] += myTransformMatrix[row][column] * myVertMatrix[row];
+			}
+			test2 = 0;
+		}
 		fX = (GLfloat) myResultMatrix[0];
 		fY = (GLfloat) myResultMatrix[1];
 		fZ = (GLfloat) myResultMatrix[2];
-		fJump = (int) myResultMatrix[3];
-
+		//fJump = (int) myResultMatrix[3];
+		if (i>447)
+			fZ= (GLfloat)myResultMatrix[2];
 		switch (fJump)
 		{
 		case 1:                                 // Start drawing on the next vertex  We just jumped here (J)
@@ -236,7 +250,8 @@ void MouseMotionEvent(int x, int y)
 	int diffx = x - lastx; //check the difference between the current x and the last x position
 	int diffy = y - lasty; //check the difference between the current y and the last y position
 	angle = atan((float) diffy/ (float) diffx);    // This is radian
-	glRotatef((GLfloat) diffx, (sin(angle)), (cos(angle)), 0.0f);  // rotate the direction of the mouse on the screen, as apposed to the line below
+	RotateMyTransformMatrix((GLfloat)diffx, (sin(angle)), (cos(angle)), 0.0f);  // rotate the direction of the mouse on the screen, as apposed to the line below
+	//glRotatef((GLfloat)diffx, (sin(angle)), (cos(angle)), 0.0f);  // rotate the direction of the mouse on the screen, as apposed to the line below
 	//glRotatef(diffx, (cos(angle)), (sin(angle)), 0.0f);  // Move about X when moving along X or rotate about X when moving left and right
 	//printf("x=%d, y=%d, mouseButtonState=%d, lastx=%d, lasty=%d, angle=%f\n", x, y, mouseButtonState, lastx, lasty, angle);
 }
@@ -287,32 +302,38 @@ void myKeyboardEvent(unsigned char key, int x, int y)
 
 		// Rotate 15 degrees in the X positive axis
 	case 'X':
-		glRotatef(15.0f,1.0f,0.0f,0.0f);
+		RotateMyTransformMatrix(15.0f, 1.0f, 0.0f, 0.0f);
+		//glRotatef(15.0f,1.0f,0.0f,0.0f);
 		break;
 
 		// Rotate 15 degrees in the X negative axis
 	case 'x':
-		glRotatef(-15.0f, 1.0f, 0.0f, 0.0f);
+		RotateMyTransformMatrix(-15.0f, 1.0f, 0.0f, 0.0f);
+		//glRotatef(-15.0f, 1.0f, 0.0f, 0.0f);
 		break;
 
 		// Rotate 15 degrees in the X positive axis
 	case 'Y':
-		glRotatef(15.0f, 0.0f, 1.0f, 0.0f);
+		RotateMyTransformMatrix(15.0f, 0.0f, 1.0f, 0.0f);
+		//glRotatef(15.0f, 0.0f, 1.0f, 0.0f);
 		break;
 
 		// Rotate 15 degrees in the X negative axis
 	case 'y':
-		glRotatef(-15.0f, 0.0f, 1.0f, 0.0f);
+		RotateMyTransformMatrix(-15.0f, 0.0f, 1.0f, 0.0f);
+		//glRotatef(-15.0f, 0.0f, 1.0f, 0.0f);
 		break;
 
 		// Rotate 15 degrees in the X positive axis
 	case 'Z':
-		glRotatef(15.0f, 0.0f, 0.0f, 1.0f);
+		RotateMyTransformMatrix(15.0f, 0.0f, 0.0f, 1.0f);
+		//glRotatef(15.0f, 0.0f, 0.0f, 1.0f);
 		break;
 
 		// Rotate 15 degrees in the X negative axis
 	case 'z':
-		glRotatef(-15.0f, 0.0f, 0.0f, 1.0f);
+		RotateMyTransformMatrix(-15.0f, 0.0f, 0.0f, 1.0f);
+		//glRotatef(-15.0f, 0.0f, 0.0f, 1.0f);
 		break;
 
 		// This will reset the img back to its original position.
@@ -332,10 +353,39 @@ void myKeyboardEvent(unsigned char key, int x, int y)
 
 }
 
+void RotateMyTransformMatrix(GLfloat myAngle, GLfloat x, GLfloat y, GLfloat z)
+{
+	//glRotatef(-15.0f, 0.0f, 0.0f, 1.0f);
+	double myRadians= myAngle * 3.14159265 /180.0;
+			
+	totalAngle += (GLfloat)myRadians;
+
+	myTransformMatrix[0][0] = (GLfloat) (x * x * (1.0 - cos(totalAngle)) * 1 + cos(totalAngle))* myPrevScaleX;
+	myTransformMatrix[0][1] = (GLfloat)(x * y * (1.0 - cos(totalAngle)) * 1 - z * sin(totalAngle)) * myPrevScaleY;
+	myTransformMatrix[0][2] = (GLfloat) (x * z * (1.0 - cos(totalAngle)) * 1 + y * sin(totalAngle))* myPrevScaleZ;
+	myTransformMatrix[0][3] = prev_x;
+	myTransformMatrix[1][0] = (GLfloat) (x * y * (1.0 - cos(totalAngle)) * 1 + z * sin(totalAngle))* myPrevScaleX;
+	myTransformMatrix[1][1] = (GLfloat) (y * y * (1.0 - cos(totalAngle)) * 1 + cos(totalAngle))* myPrevScaleY;
+	myTransformMatrix[1][2] = (GLfloat) (z * y * (1.0 - cos(totalAngle)) * 1 - x * sin(totalAngle))* myPrevScaleZ;
+	myTransformMatrix[1][3] = prev_y;
+	myTransformMatrix[2][0] = (GLfloat) (x * z * (1.0 - cos(totalAngle)) * 1 - y * sin(totalAngle))* myPrevScaleX;
+	myTransformMatrix[2][1] = (GLfloat) (y * z * (1.0 - cos(totalAngle)) * 1 + x * sin(totalAngle))* myPrevScaleY;
+	myTransformMatrix[2][2] = (GLfloat) (z * z * (1.0 - cos(totalAngle)) * 1 + cos(totalAngle))* myPrevScaleZ;
+	myTransformMatrix[2][3] = prev_z; 
+	myTransformMatrix[3][0] = 0;
+	myTransformMatrix[3][1] = 0;
+	myTransformMatrix[3][2] = 0;
+	myTransformMatrix[3][3] = 1;
+
+}
 
 void TranslateMyTransformMatrix(GLfloat x, GLfloat y, GLfloat z)
 {
 	//should work like the built in glTranslatef(0.0f, (float)(height * .1), 0.0f);
+	prev_x += x;
+	prev_y += y;
+	prev_z += z;
+
 	myTransformMatrix[0][3] += x;
 	myTransformMatrix[1][3] += y;
 	myTransformMatrix[2][3] += z;
@@ -344,9 +394,15 @@ void TranslateMyTransformMatrix(GLfloat x, GLfloat y, GLfloat z)
 void ScaleMyTransformMatrix(GLfloat myScaleX, GLfloat myScaleY, GLfloat myScaleZ)
 {
 	// should work like the built in glScalef(1.1f, 1.1f, 1.1f);
-	myTransformMatrix[0][0] = myTransformMatrix[0][0] * myScaleX;
-	myTransformMatrix[1][1] = myTransformMatrix[1][1] * myScaleX;
-	myTransformMatrix[2][2] = myTransformMatrix[2][2] * myScaleX;
+
+	myPrevScaleX *= myScaleX;
+	myPrevScaleY *= myScaleY;
+	myPrevScaleZ *= myScaleZ;
+
+	myTransformMatrix[0][0] *= myScaleX;
+	myTransformMatrix[1][1] *= myScaleY;
+	myTransformMatrix[2][2] *= myScaleZ;
+	myTransformMatrix[3][3] = 1;
 }
 
 void IndentifyMyTransformMatrix()
@@ -360,6 +416,13 @@ void IndentifyMyTransformMatrix()
 	myTransformMatrix[1][1] = 1;
 	myTransformMatrix[2][2] = 1;
 	myTransformMatrix[3][3] = 1;
+	prev_x = 0;
+	prev_y = 0;
+	prev_z = 0;
+	myPrevScaleX = 1.0;
+	myPrevScaleY = 1.0;
+	myPrevScaleZ = 1.0;
+	totalAngle = 0.0;
 }
 
 //for the exit using the mouse click to X
@@ -368,6 +431,7 @@ void myCloseEvent()
 	printf("Quiting after user pressed a key or Window X\n");
 	iDirection = 0;
 	iContinue = 0;
+	IndentifyMyTransformMatrix();
 	//glutLeaveMainLoop();
 }
 
