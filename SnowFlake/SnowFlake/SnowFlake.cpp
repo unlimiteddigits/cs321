@@ -4,22 +4,22 @@
 
 void init_window(int argc, char** argv)
 {
-	glutInit(&argc, argv);
-	glutInitDisplayMode(GLUT_RGB);
-	glutInitWindowSize(500, 500);
-	glutInitWindowPosition(10, 100);
-	glutCreateWindow("Matrix Push & Pop");
+	glutInit(&argc, argv);					// glutInit will initialize the GLUT library and negotiate a session with the window system. During this process, glutInit may cause the termina- tion of the GLUT program with an error message to the user if GLUT can- not be properly initialized. Examples of this situation include the failure to connect to the window system, the lack of window system sup- port for OpenGL, and invalid command line options.
+	glutInitDisplayMode(GLUT_RGB);			//The initial display mode is used when creating top-level windows, sub- windows, and overlays to determine the OpenGL display mode for the to-be-created window or overlay.
+	glutInitWindowSize(500, 500);			//
+	glutInitWindowPosition(10, 100);		//Windows created by glutCreateWindow will be requested to be created with the current initial window position and size.
+	glutCreateWindow("Matrix Push & Pop");	//glutCreateWindow creates a top-level window. The name will be provided to the window system as the window's name. The intent is that the win- dow system will label the window with the name.
 }
 
 void other_init()
 {
-	glClearColor(1.0, 1.0, 1.0, 1.0);
-	glColor3f(0.8, 0.8, 0.8);
-	glPointSize(.0);
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	glOrtho(0.0, 500.0, 0.0, 500.0, -1.0, 1.0);
-	glMatrixMode(GL_MODELVIEW);
+	glClearColor(1.0, 1.0, 1.0, 1.0);		//
+	glColor3f(0.8, 0.8, 0.8);				//
+	glPointSize(1.1);						//specifies the rasterized diameter of both aliased and antialiased points
+	glMatrixMode(GL_PROJECTION);			//sets the current matrix mode. mode can assume one of four values: Applies subsequent matrix operations to ...  GL_MODELVIEW, GL_PROJECTION, GL_TEXTURE, or GL_COLOR
+	glLoadIdentity();						//replaces the current matrix with the identity matrix. 
+	glOrtho(0.0, 500.0, 0.0, 500.0, -1.0, 1.0);//describes a transformation that produces a parallel projection. The current matrix (see glMatrixMode) is multiplied by this matrix and the result replaces the current matrix
+	glMatrixMode(GL_MODELVIEW);				//
 }
 
 void draw_one_snowflake()
@@ -85,13 +85,13 @@ void display(void)
 	float size;
 
 	glClear(GL_COLOR_BUFFER_BIT);
-	for (i = 0; i < 200; i++)
+	for (i = 0; i < 3; i++)
 	{
 		glPushMatrix();  // Containes all previous geometric transformation
 		x_coord = rand() % 500;	y_coord = rand() % 500;		// Location
 		glTranslated(x_coord, y_coord, 0);					// Size
 		size = define_scale_factor();
-		glScaled(size, size, 1.0);
+		glScaled(size*2, size*2, 1.0);							//
 		draw_snowflake();
 		glPopMatrix();
 	}
