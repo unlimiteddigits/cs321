@@ -85,8 +85,10 @@ void other_init()
 	glutCloseFunc(myCloseEvent);        // myCloseEvent set the flags needed to stop the timer function
 	glutIdleFunc(DoBackgroundStuff);    // playing with more functions
 	glMatrixMode(GL_MODELVIEW);         // Get Back to the Modelview
-
-
+	gluLookAt(0,0,200,0,0,1,0,1,0); // assume your eye is a 0,0,0
+	//glFrustum(L, R, B, T, NEAR, FAR); // Truncated pyramid
+	gluPerspective(fovy, aspect, z-near, far);// easy way -Field Of View angle in degrees along y-axis   // Normalized then port in viewport.  Viewport is viewing volume after that
+	// Day 18 - 10/29/2020 0:44:00
 }
 
 void DoBackgroundStuff() {
