@@ -16,7 +16,7 @@ https://github.com/unlimiteddigits/cs321
 #define EXAMPLE_H
 
 void init_Window_Attrubutes(int argc, char** argv);
-void displayPartB(void);
+void display(void);
 void myKeyboardEvent(unsigned char key, int x, int y);
 void PromptFileName();
 void CreateArray();

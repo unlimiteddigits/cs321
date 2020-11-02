@@ -38,6 +38,8 @@ GLfloat windowWidth = 600;
 GLfloat windowHeight = 400;
 GLfloat viewportWidth = 300;
 GLfloat viewportHeight = 200;
+GLfloat viewportXOffset = 0;
+GLfloat viewportYOffset = 0;
 
 GLfloat Distortion = 1.0;        // Starting point and reset value of distortion.  Or... The maximum distance the "flame" will flicker in the wind
 GLfloat xDistortion = Distortion; // Starting point of distortion on the x axis
@@ -76,7 +78,7 @@ void other_init()
 	glClearColor(0.9f, 0.925f, 0.93f, 1.0f);	/* Re-Set background color  white*/
 	glMatrixMode(GL_PROJECTION);		/* Modify Projection Matrix */
 	glLoadIdentity();					/* Set to identity matrix */
-	glOrtho(-2026.0, 2026.0, -2026.0, 2026.0, -3526.0, 3526.0);	/* Orthographic viewing volume */
+	glOrtho(-2026.0/2, 2026.0 / 2, -2026.0 / 2, 2026.0 / 2, -3526.0 / 2, 3526.0 / 2);	/* Orthographic viewing volume */
 	glutMouseFunc(myMouseEvent);		// run myMouseEvent when the user uses the mouse
 	//glutPassiveMotionFunc(MouseMotionEvent);
 	glutMotionFunc(MouseMotionEvent);
@@ -87,7 +89,7 @@ void other_init()
 	glMatrixMode(GL_MODELVIEW);         // Get Back to the Modelview
 	gluLookAt(0,0,200,0,0,1,0,1,0); // assume your eye is a 0,0,0
 	//glFrustum(L, R, B, T, NEAR, FAR); // Truncated pyramid
-	gluPerspective(fovy, aspect, z-near, far);// easy way -Field Of View angle in degrees along y-axis   // Normalized then port in viewport.  Viewport is viewing volume after that
+	//gluPerspective(fovy, aspect, z-near, far);// easy way -Field Of View angle in degrees along y-axis   // Normalized then port in viewport.  Viewport is viewing volume after that
 	// Day 18 - 10/29/2020 0:44:00
 }
 
@@ -105,7 +107,7 @@ void FixViewport(int width, int height) {
 }
 
 // callback for Part B of the assignment
-void displayPartB(void)
+void display(void)
 {
 	int i, row,column;									// loop counter 
 	GLfloat fX, fY, fZ;						// place holders for the vertices 
@@ -120,20 +122,26 @@ void displayPartB(void)
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);	/* Clear color values */
 
-	glViewport((windowWidth - viewportWidth) / 2.0, (windowHeight - viewportHeight) / 2.0, viewportWidth, viewportHeight);
+	glViewport(((windowWidth - viewportWidth) / 2.0)+ viewportXOffset, ((windowHeight - viewportHeight) / 2.0)+ viewportYOffset, viewportWidth, viewportHeight);
 	//ortho
 	//glOrtho(-2026.0, 2026.0, -2026.0, 2026.0, -3526.0, 3526.0);	/* Orthographic viewing volume */
 
 	glColor3f(1.0, 0.0, 0.0);       // for the Red - need multiple windows
 
-	glBegin(GL_LINE_STRIP);
-	glVertex3f(0.0f, 0.0f, 0.0f);
-	glVertex3f(0.0f, viewportHeight, 0.0f);
-	glVertex3f(viewportWidth, viewportHeight, 0.0f);
-	glVertex3f(viewportWidth, 0.0f, 0.0f);
-	glVertex3f(0.0f, 0.0f, 0.0f);
+	glMatrixMode(GL_MODELVIEW);
+	glPushMatrix(); 
+	glLoadIdentity(); 
+	glMatrixMode(GL_PROJECTION);
+	glPushMatrix(); 
+	glLoadIdentity();
+	glBegin(GL_LINE_STRIP); 
+	glVertex3f(1.0f, 1.0f, 0.0f);  //upper right
+	glVertex3f(-1.0f, 1.0f, 0.0f); //upper left
+	glVertex3f(-1.0f, -0.990f, 0.0f);  // lower left
+	glVertex3f(0.990f,-0.99f, 0.0f); //Lower right
+	glVertex3f(0.990f, 0.99f, 0.0f); //upper right
 	glEnd();
-
+	glPopMatrix(); glMatrixMode(GL_MODELVIEW); glPopMatrix();
 
 	glColor3f(0.0, 0.0, 1.0);		/* Set foreground color */
 	glPointSize(4.0);				/* Set point size */
@@ -158,9 +166,6 @@ void displayPartB(void)
 		{
 			for (column = 0; column < 4; ++column)
 			{
-				//test1 = myTransformMatrix[row][column] * myVertMatrix[column];
-				//test2 += test1;
-				//myResultMatrix[row] = test2;
 				myResultMatrix[row] += myTransformMatrix[row][column] * myVertMatrix[column];
 			}
 			//test2 = 0;
@@ -169,12 +174,12 @@ void displayPartB(void)
 		fY = (GLfloat) myResultMatrix[1];
 		fZ = (GLfloat) myResultMatrix[2];
 		//fJump = (int) myResultMatrix[3];
+
 		if (i>447)
 			fZ= (GLfloat)myResultMatrix[2];
 		switch (fJump)
 		{
 		case 1:                                 // Start drawing on the next vertex  We just jumped here (J)
-//			glBegin(GL_LINES);
 			prev_fX = fX;
 			prev_fY = fY;
 			prev_fZ = fZ;
@@ -182,7 +187,6 @@ void displayPartB(void)
 		case 2:                                 // Create the last line segment before another jump (J)
 			glVertex3f(prev_fX, prev_fY, prev_fZ);
 			glVertex3f(fX+ (xSkewMultiplier* xDistortion), fY + (ySkewMultiplier * yDistortion), fZ);
-//			glEnd();
 			break;
 		default:                                // Normally just draw line segments and connect the dots.
 			glVertex3f(prev_fX, prev_fY, prev_fZ);
@@ -196,34 +200,6 @@ void displayPartB(void)
 	}
 	glEnd();
 	
-	glColor3f(0.0, 0.0, 1.0);       // for the blue - on blackish
-
-	//glEnable(GL_LINE_STIPPLE);
-	glBegin(GL_LINES);
-	glVertex3f(0.0f, 0.0f, 0.0f);
-	glVertex3f(1000.0f, 0.0f, 0.0f);
-	glEnd();
-	
-	//sprintf("", Axis_Label, "X-Axis");
-	drawString(1000,100,0, X_Label);
-
-	//Axis_Label = "Y-Axis";
-	drawString(100, 1000, 0, Y_Label);
-
-	//Axis_Label = "Z-Axis";
-	drawString(100, 100, 1000, Z_Label);
-
-	glBegin(GL_LINES);
-	glVertex3f(0.0f, 0.0f, 0.0f);
-	glVertex3f(0.0f, 1000.0f, 0.0f);
-	glEnd();
-	glBegin(GL_LINES);
-	glVertex3f(0.0f, 0.0f, 0.0f);
-	glVertex3f(0.0f, 0.0f, 1000.0f);
-	glEnd();
-	//glDisable(GL_LINE_STIPPLE);
-
-
 	glFlush();						/* Clear event buffer */
 	//Sleep(50);                  // the timer is restricted below
 	glutSwapBuffers();
@@ -289,75 +265,91 @@ void myKeyboardEvent(unsigned char key, int x, int y)
 
 	switch (key) {
 		// Move img up
-	case 'u': case 'U':
-		TranslateMyTransformMatrix(0.0f, (float)(height * .1), 0.0f);
-		//glTranslatef(0.0f, (float)(height * .1), 0.0f);
+	case 'u':  //  object stays, viewport moves to simulate viewing wolume move
+		glTranslatef(0.0f, (float)(height * -.1), 0.0f);
+		viewportYOffset += (float)(viewportHeight * .1);
+		break;
+	case 'U':  // viewport stays, object moves
+		//TranslateMyTransformMatrix(0.0f, (float)(height * .1), 0.0f);
+		glTranslatef(0.0f, (float)(height * .1), 0.0f);
 		break;
 
 		// Move img left
-	case 'l': case 'L':
-		TranslateMyTransformMatrix((float)-(width * .1), 0.0f, 0.0f);
-		//glTranslatef((float)-(width * .1), 0.0f, 0.0f);
+	case 'l':   //  object stays, viewport moves to simulate viewing wolume move
+		viewportXOffset += (float)(viewportWidth * -.1);
+		glTranslatef((float)(width * .1), 0.0f, 0.0f);
+		break;
+	case 'L':  // viewport stays, object moves
+		//TranslateMyTransformMatrix((float)-(width * .1), 0.0f, 0.0f);
+		glTranslatef((float)-(width * .1), 0.0f, 0.0f);
 		break;
 
 		// Move img down
-	case 'd': case 'D':
-		TranslateMyTransformMatrix(0.0f, (float)-(height * .1), 0.0f);
-		//glTranslatef(0.0f, (float)-(height * .1), 0.0f);
+	case 'd':   //  object stays, viewport moves to simulate viewing wolume move
+		glTranslatef(0.0f, (float) (height * .1), 0.0f);
+		viewportYOffset += (float)(viewportHeight * -.1);
+		break;
+	case 'D':  // viewport stays, object moves
+		//TranslateMyTransformMatrix(0.0f, (float)-(height * .1), 0.0f);
+		glTranslatef(0.0f, (float)-(height * .1), 0.0f);
 		break;
 
 		// Move img right
-	case 'r': case 'R':
-		TranslateMyTransformMatrix((float)(width * .1), 0.0f, 0.0f);
-		//glTranslatef((float)(width * .1), 0.0f, 0.0f);
+	case 'r':   //  object stays, viewport moves to simulate viewing wolume move
+		viewportXOffset += (float)(viewportWidth * .1);
+		glTranslatef((float) (width * -.1), 0.0f, 0.0f);
+		break;
+	case 'R':  // viewport stays, object moves
+		//TranslateMyTransformMatrix((float)(width * .1), 0.0f, 0.0f);
+		glTranslatef((float)(width * .1), 0.0f, 0.0f);
 		break;
 
 		//  Enlarge the img 
 	case '+':
-		ScaleMyTransformMatrix(1.1f, 1.1f, 1.1f);
-		//glScalef(1.1f, 1.1f, 1.1f);
+		//ScaleMyTransformMatrix(1.1f, 1.1f, 1.1f);
+		glScalef(1.1f, 1.1f, 1.1f);
 		break;
 
 		// shrink the img
 	case '-':
-		ScaleMyTransformMatrix(0.9f, 0.9f, 0.9f);
-		//glScalef(0.9f, 0.9f, 0.9f);
+		//ScaleMyTransformMatrix(0.9f, 0.9f, 0.9f);
+		glScalef(0.9f, 0.9f, 0.9f);
 		break;
 
 		// Rotate 15 degrees in the X positive axis
 	case 'X':
-		RotateMyTransformMatrix(15.0f, 1.0f, 0.0f, 0.0f);
-		//glRotatef(15.0f,1.0f,0.0f,0.0f);
+		//RotateMyTransformMatrix(15.0f, 1.0f, 0.0f, 0.0f);
+		glRotatef(15.0f,1.0f,0.0f,0.0f);
 		break;
 
 		// Rotate 15 degrees in the X negative axis
 	case 'x':
-		RotateMyTransformMatrix(-15.0f, 1.0f, 0.0f, 0.0f);
-		//glRotatef(-15.0f, 1.0f, 0.0f, 0.0f);
+		//RotateMyTransformMatrix(-15.0f, 1.0f, 0.0f, 0.0f);
+		glRotatef(-15.0f, 1.0f, 0.0f, 0.0f);
 		break;
 
 		// Rotate 15 degrees in the X positive axis
 	case 'Y':
-		RotateMyTransformMatrix(15.0f, 0.0f, 1.0f, 0.0f);
-		//glRotatef(15.0f, 0.0f, 1.0f, 0.0f);
+		//RotateMyTransformMatrix(15.0f, 0.0f, 1.0f, 0.0f);
+		glRotatef(15.0f, 0.0f, 1.0f, 0.0f);
 		break;
 
 		// Rotate 15 degrees in the X negative axis
 	case 'y':
-		RotateMyTransformMatrix(-15.0f, 0.0f, 1.0f, 0.0f);
-		//glRotatef(-15.0f, 0.0f, 1.0f, 0.0f);
+		//RotateMyTransformMatrix(-15.0f, 0.0f, 1.0f, 0.0f);
+		glRotatef(-15.0f, 0.0f, 1.0f, 0.0f);
 		break;
 
 		// Rotate 15 degrees in the X positive axis
 	case 'Z':
-		RotateMyTransformMatrix(15.0f, 0.0f, 0.0f, 1.0f);
-		//glRotatef(15.0f, 0.0f, 0.0f, 1.0f);
+		//RotateMyTransformMatrix(15.0f, 0.0f, 0.0f, 1.0f);
+		glRotatef(15.0f, 0.0f, 0.0f, 1.0f);
 		break;
 
 		// Rotate 15 degrees in the X negative axis
 	case 'z':
-		RotateMyTransformMatrix(-15.0f, 0.0f, 0.0f, 1.0f);
-		//glRotatef(-15.0f, 0.0f, 0.0f, 1.0f);
+		//RotateMyTransformMatrix(-15.0f, 0.0f, 0.0f, 1.0f);
+		glRotatef(-15.0f, 0.0f, 0.0f, 1.0f);
 		break;
 
 		// This will reset the img back to its original position.
@@ -365,7 +357,6 @@ void myKeyboardEvent(unsigned char key, int x, int y)
 		// simply reset the state to move the img back to its original position.
 	case 'i': case 'I':
 		IndentifyMyTransformMatrix();
-		//glLoadIdentity();
 		break;
 
 		// If the 'q' or 'Q' key is pressed, the program exits.
@@ -448,6 +439,9 @@ void IndentifyMyTransformMatrix()
 	myPrevScaleY = 1.0;
 	myPrevScaleZ = 1.0;
 	totalAngle = 0.0;
+	viewportXOffset = 0;
+	viewportYOffset = 0;
+	glLoadIdentity();
 }
 
 //for the exit using the mouse click to X
@@ -500,7 +494,7 @@ void FreeMem() {
 //  ---- Except the 4th dimension of the array used to flag where the "J" was in the file----
 //  ---- And the menu system which could have been in project 1
 //  Search for "jumpFlag" in the ReadDataBySpace function to how the 4th dim was used.
-//  This 4th dim is a key component in the "displayPartB" Callback.
+//  This 4th dim is a key component in the "display" Callback.
 
 //from Project1
 // Prompt the file name
