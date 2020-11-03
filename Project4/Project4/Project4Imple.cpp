@@ -36,8 +36,8 @@ int mouseButtonState = 0;
 
 GLfloat windowWidth = 600;
 GLfloat windowHeight = 400;
-GLfloat viewportWidth = 300;
-GLfloat viewportHeight = 200;
+GLfloat viewportWidth = VIEWSTARTW;
+GLfloat viewportHeight = VIEWSTARTH;
 GLfloat viewportXOffset = 0;
 GLfloat viewportYOffset = 0;
 
@@ -66,9 +66,9 @@ vertex4 myTransformMatrix[4] = {
 void init_Window_Attrubutes(int argc, char** argv) {
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE);
-	glutInitWindowSize(windowWidth, windowHeight);
+	glutInitWindowSize((int)windowWidth, (int)windowHeight);
 	//x = (Screen Width - Window Width) / 2, y = (Screen Height - Window Height) / 2
-	glutInitWindowPosition((glutGet(GLUT_SCREEN_WIDTH) - windowWidth) / 2, (glutGet(GLUT_SCREEN_HEIGHT) - windowHeight) / 2);  // auto version -> 
+	glutInitWindowPosition((int) (glutGet(GLUT_SCREEN_WIDTH) - windowWidth) / 2, (int) (glutGet(GLUT_SCREEN_HEIGHT) - windowHeight) / 2);  // auto version -> 
 	glutCreateWindow("Project 4");
 }
 
@@ -122,7 +122,7 @@ void display(void)
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);	/* Clear color values */
 
-	glViewport(((windowWidth - viewportWidth) / 2.0)+ viewportXOffset, ((windowHeight - viewportHeight) / 2.0)+ viewportYOffset, viewportWidth, viewportHeight);
+	glViewport((GLsizei)(((windowWidth - viewportWidth) / 2.0)+ viewportXOffset), (GLsizei)(((windowHeight - viewportHeight) / 2.0)+ viewportYOffset),(GLint) viewportWidth, (GLint) viewportHeight);
 	//ortho
 	//glOrtho(-2026.0, 2026.0, -2026.0, 2026.0, -3526.0, 3526.0);	/* Orthographic viewing volume */
 
@@ -262,6 +262,10 @@ void myKeyboardEvent(unsigned char key, int x, int y)
 	double width = abs(min_X) + abs(max_X);
 	double height = abs(min_Y) + abs(max_Y);
 	double depth = abs(min_Z) + abs(max_Z);
+	double centerX = (min_X + max_X) / 2;
+	double centerY = (min_Y + max_Y) / 2;
+	double centerZ = (min_Z + max_Z) / 2;
+	float projectionMatrix[];
 
 	switch (key) {
 		// Move img up
@@ -276,7 +280,7 @@ void myKeyboardEvent(unsigned char key, int x, int y)
 
 		// Move img left
 	case 'l':   //  object stays, viewport moves to simulate viewing wolume move
-		viewportXOffset += (float)(viewportWidth * -.1);
+		viewportXOffset += (float)(viewportWidth * (-0.1));
 		glTranslatef((float)(width * .1), 0.0f, 0.0f);
 		break;
 	case 'L':  // viewport stays, object moves
@@ -297,11 +301,24 @@ void myKeyboardEvent(unsigned char key, int x, int y)
 		// Move img right
 	case 'r':   //  object stays, viewport moves to simulate viewing wolume move
 		viewportXOffset += (float)(viewportWidth * .1);
-		glTranslatef((float) (width * -.1), 0.0f, 0.0f);
+		glTranslatef((float) (width * (-0.1)), 0.0f, 0.0f);
 		break;
 	case 'R':  // viewport stays, object moves
 		//TranslateMyTransformMatrix((float)(width * .1), 0.0f, 0.0f);
 		glTranslatef((float)(width * .1), 0.0f, 0.0f);
+		break;
+	case 'E':  // Enlarge viewport
+		viewportWidth *= (GLfloat)1.1;
+		viewportHeight *= (GLfloat)1.1;
+		glScalef(0.9f, 0.9f, 0.9f);
+		break;
+	case 'e':  // lower case to lower viewport size
+		if (viewportHeight>10.0)
+		{
+			glScalef(1.1f, 1.1f, 1.1f);
+			viewportWidth *= (GLfloat)0.9;
+			viewportHeight *= (GLfloat)0.9;
+		}
 		break;
 
 		//  Enlarge the img 
@@ -319,43 +336,70 @@ void myKeyboardEvent(unsigned char key, int x, int y)
 		// Rotate 15 degrees in the X positive axis
 	case 'X':
 		//RotateMyTransformMatrix(15.0f, 1.0f, 0.0f, 0.0f);
+		glTranslatef((float)centerX, (float) centerY, (float) centerZ);
 		glRotatef(15.0f,1.0f,0.0f,0.0f);
+		glTranslatef((float) ((-1.0)*centerX), (float) ((-1.0)*centerY), (float) (((-1.0)*centerZ)));
 		break;
 
 		// Rotate 15 degrees in the X negative axis
 	case 'x':
 		//RotateMyTransformMatrix(-15.0f, 1.0f, 0.0f, 0.0f);
+		glTranslatef((float)centerX, (float)centerY, (float)centerZ);
 		glRotatef(-15.0f, 1.0f, 0.0f, 0.0f);
+		glTranslatef((float)((-1.0) * centerX), (float)((-1.0) * centerY), (float)(((-1.0) * centerZ)));
 		break;
 
 		// Rotate 15 degrees in the X positive axis
 	case 'Y':
 		//RotateMyTransformMatrix(15.0f, 0.0f, 1.0f, 0.0f);
+		glTranslatef((float)centerX, (float)centerY, (float)centerZ);
 		glRotatef(15.0f, 0.0f, 1.0f, 0.0f);
+		glTranslatef((float)((-1.0) * centerX), (float)((-1.0) * centerY), (float)(((-1.0) * centerZ)));
 		break;
 
 		// Rotate 15 degrees in the X negative axis
 	case 'y':
 		//RotateMyTransformMatrix(-15.0f, 0.0f, 1.0f, 0.0f);
+		glTranslatef((float)centerX, (float)centerY, (float)centerZ);
 		glRotatef(-15.0f, 0.0f, 1.0f, 0.0f);
+		glTranslatef((float)((-1.0) * centerX), (float)((-1.0) * centerY), (float)(((-1.0) * centerZ)));
 		break;
 
 		// Rotate 15 degrees in the X positive axis
 	case 'Z':
 		//RotateMyTransformMatrix(15.0f, 0.0f, 0.0f, 1.0f);
+		glTranslatef((float)centerX, (float)centerY, (float)centerZ);
 		glRotatef(15.0f, 0.0f, 0.0f, 1.0f);
+		glTranslatef((float)((-1.0) * centerX), (float)((-1.0) * centerY), (float)(((-1.0) * centerZ)));
 		break;
 
 		// Rotate 15 degrees in the X negative axis
 	case 'z':
 		//RotateMyTransformMatrix(-15.0f, 0.0f, 0.0f, 1.0f);
+		glTranslatef((float)centerX, (float)centerY, (float)centerZ);
 		glRotatef(-15.0f, 0.0f, 0.0f, 1.0f);
+		glTranslatef((float)((-1.0) * centerX), (float)((-1.0) * centerY), (float)(((-1.0) * centerZ)));
 		break;
 
 		// This will reset the img back to its original position.
 		// Since everything done is only stored in the state of openGL we can
 		// simply reset the state to move the img back to its original position.
 	case 'i': case 'I':
+		IndentifyMyTransformMatrix();
+		break;
+	case 'p': case 'P':   // Perspective projection
+		//IndentifyMyTransformMatrix();
+		float aspectRatio = (float)width / (float)height;
+		orthoM(projectionMatrix, 0, -aspectRatio, aspectRatio, -1, 1, -1, 1);
+		frustumM(projectionMatrix, 0, -aspectRatio, aspectRatio, -1, 1, 1, 100);
+		break;
+	case 'o': case 'O':   // Parallel orthographic projection, Front elevation
+		IndentifyMyTransformMatrix();
+		break;
+	case 't': case 'T':   // Parallel orthographic projection, Top elevation
+		IndentifyMyTransformMatrix();
+		break;
+	case 's': case 'S':   // Parallel orthographic projection, side elevation
 		IndentifyMyTransformMatrix();
 		break;
 
@@ -441,6 +485,8 @@ void IndentifyMyTransformMatrix()
 	totalAngle = 0.0;
 	viewportXOffset = 0;
 	viewportYOffset = 0;
+	viewportWidth = VIEWSTARTW;
+	viewportHeight = VIEWSTARTH;
 	glLoadIdentity();
 }
 
@@ -599,6 +645,12 @@ void ReadDataBySpace() {
 	float sum_X = 0, sum_Y = 0, sum_Z = 0;
 	GLfloat temp_X = 0, temp_Y = 0, temp_Z = 0;
 	int ave_count = 0;
+	min_X = 0;
+	max_X = 0;
+	min_Y = 0;
+	max_Y = 0;
+	min_Z = 0;
+	max_Z = 0;
 
 	fp.seekg(fp.beg);  // rewind the file or fp.seekg(0);
 
