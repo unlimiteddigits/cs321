@@ -87,8 +87,8 @@ void other_init()
 	glutCloseFunc(myCloseEvent);        // myCloseEvent set the flags needed to stop the timer function
 	glutIdleFunc(DoBackgroundStuff);    // playing with more functions
 	glMatrixMode(GL_MODELVIEW);         // Get Back to the Modelview
-	gluLookAt(0,0,200,0,0,1,0,1,0); // assume your eye is a 0,0,0
-	//glFrustum(L, R, B, T, NEAR, FAR); // Truncated pyramid
+	gluLookAt(0, 0, 0, 0, 0, -10000, 0, 1, 0); // assume your eye is a 0,0,0
+//glFrustum(L, R, B, T, NEAR, FAR); // Truncated pyramid
 	//gluPerspective(fovy, aspect, z-near, far);// easy way -Field Of View angle in degrees along y-axis   // Normalized then port in viewport.  Viewport is viewing volume after that
 	// Day 18 - 10/29/2020 0:44:00
 }
@@ -265,7 +265,8 @@ void myKeyboardEvent(unsigned char key, int x, int y)
 	double centerX = (min_X + max_X) / 2;
 	double centerY = (min_Y + max_Y) / 2;
 	double centerZ = (min_Z + max_Z) / 2;
-	float projectionMatrix[];
+	float aspectRatio = (float)width / (float)height;
+	//float projectionMatrix[];
 
 	switch (key) {
 		// Move img up
@@ -388,19 +389,39 @@ void myKeyboardEvent(unsigned char key, int x, int y)
 		IndentifyMyTransformMatrix();
 		break;
 	case 'p': case 'P':   // Perspective projection
-		//IndentifyMyTransformMatrix();
-		float aspectRatio = (float)width / (float)height;
-		orthoM(projectionMatrix, 0, -aspectRatio, aspectRatio, -1, 1, -1, 1);
-		frustumM(projectionMatrix, 0, -aspectRatio, aspectRatio, -1, 1, 1, 100);
-		break;
-	case 'o': case 'O':   // Parallel orthographic projection, Front elevation
+		printf("min_X=%f4.2,max_X=%f4.2, min_Y=%f4.2, max_Y=%f4.2, min_Z=%f4.2, max_Z=%f4.2\n", (min_X), (max_X), (min_Y), (max_Y), (min_Z), (max_Z));
 		IndentifyMyTransformMatrix();
+		//glFrustum(L, R, B, T, NEAR, FAR); // Truncated pyramid
+		//gluLookAt(0, 0, 1500, 0, 0, 0, 0, 1, 0); // assume your eye is a 0,0,0
+		//glFrustum(min_X*.5, max_X * .5, min_Y * .5, max_Y * .5, max_Z , min_Z );
+		//gluPerspective(fovy, aspectRatio, z - near, far);// easy way -Field Of View angle in degrees along y-axis   // Normalized then port in viewport.  Viewport is viewing volume after that
+		//gluLookAt(0, 0, 0, 0, 0, -10000, 0, 1, 0); // assume your eye is a 0,0,0
+		gluPerspective(0.1, aspectRatio, 10, -10);// easy way -Field Of View angle in degrees along y-axis   // Normalized then port in viewport.  Viewport is viewing volume after that
+		gluLookAt(0, 0, 1500, 0, 0, 0, 0, 1, 0); // assume your eye is a 0,0,0
+		break;
+	case 'o': 
+		IndentifyMyTransformMatrix();
+		gluLookAt(0, 0, 0, 0, 0, -10000, 0, 1, 0); // assume your eye is a 0,0,0
+		break;
+	case 'O':   // Parallel orthographic projection, Front elevation
+		IndentifyMyTransformMatrix();
+		gluLookAt(0, 0, 10,    0, 0, 0,    0, 1, 0); // assume your eye is a 0,0,0
 		break;
 	case 't': case 'T':   // Parallel orthographic projection, Top elevation
 		IndentifyMyTransformMatrix();
+		gluLookAt(0, 0, 0,    0, -10000, 0,    0, 0, -1); // assume your eye is at 0,0,0
 		break;
-	case 's': case 'S':   // Parallel orthographic projection, side elevation
+	case 's': 
 		IndentifyMyTransformMatrix();
+		//glOrtho(min_X * 3, max_X * 3, min_Y * 3, max_Y * 3, max_Z * 3, min_Z * 3);
+		//glOrtho(-1000, 1000, -1000, 1000, -1000, 1000);
+		gluLookAt(100, 0, 0,  0, 0, 0,   0, 1, 0); // assume the center is at 0,0,0
+		printf("min_X*3=%f4.2,max_X * 3=%f4.2, min_Y * 3=%f4.2, max_Y * 3=%f4.2, min_Z * 3=%f4.2, max_Z * 3=%f4.2\n",(min_X * 3),( max_X * 3),( min_Y * 3), (max_Y * 3), (min_Z * 3), (max_Z * 3));
+		break;
+	case 'S':   // Parallel orthographic projection, side elevation
+		IndentifyMyTransformMatrix();
+		gluLookAt(0, 0, 0,    -10000, 0, 0,    0, 1, 0); // assume your eye is at 0,0,0
+		printf("min_X=%f4.2,max_X=%f4.2, min_Y=%f4.2, max_Y=%f4.2, min_Z=%f4.2, max_Z=%f4.2\n", (min_X), (max_X), (min_Y), (max_Y), (min_Z), (max_Z));
 		break;
 
 		// If the 'q' or 'Q' key is pressed, the program exits.
