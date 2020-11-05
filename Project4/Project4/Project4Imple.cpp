@@ -34,6 +34,11 @@ int lastx=0, lasty=0;
 float angle = 0.0;
 int mouseButtonState = 0;
 
+int cX = 0;
+int cY = 1;
+int cZ = 2;
+int bLookAround = 1;
+
 GLfloat windowWidth = 600;
 GLfloat windowHeight = 400;
 GLfloat viewportWidth = VIEWSTARTW;
@@ -53,6 +58,10 @@ GLfloat prev_x = 0.0, prev_y=0.0, prev_z=0.0;
 GLfloat myPrevScaleX=1.0, myPrevScaleY=1.0, myPrevScaleZ=1.0;
 
 GLfloat totalAngle = 0;
+
+GLdouble eye[3] = { 0,0,0 };
+GLdouble center[3] = { 0,0,-10000 };
+GLdouble up[3] = { 0,1,0 };
 
 typedef GLfloat vertex4[4];
 vertex4 myTransformMatrix[4] = {
@@ -87,7 +96,7 @@ void other_init()
 	glutCloseFunc(myCloseEvent);        // myCloseEvent set the flags needed to stop the timer function
 	glutIdleFunc(DoBackgroundStuff);    // playing with more functions
 	glMatrixMode(GL_MODELVIEW);         // Get Back to the Modelview
-	gluLookAt(0, 0, 0, 0, 0, -10000, 0, 1, 0); // assume your eye is a 0,0,0
+	//gluLookAt(eye[cX], eye[cY], eye[cZ], center[cX], center[cY], center[cZ], up[cX], up[cY], up[cZ]); // assume your eye is a 0,0,0
 //glFrustum(L, R, B, T, NEAR, FAR); // Truncated pyramid
 	//gluPerspective(fovy, aspect, z-near, far);// easy way -Field Of View angle in degrees along y-axis   // Normalized then port in viewport.  Viewport is viewing volume after that
 	// Day 18 - 10/29/2020 0:44:00
@@ -148,6 +157,11 @@ void display(void)
 	glColor3f(1.0, 0.0, 0.0);       // for the red - on blackish
 	glLineWidth(2.0);				/* Set line width */
 
+	if (bLookAround)
+	{
+		gluLookAt(eye[cX], eye[cY], eye[cZ], center[cX], center[cY], center[cZ], up[cX], up[cY], up[cZ]); // assume your eye is a 0,0,0
+		bLookAround = 0;
+	}
 	glBegin(GL_LINES);
 	for (i = 0; i < arrayRowCount; i = i + 1) {
 		fX = (GLfloat) * (arrayPtr + i * arrayColCount);
@@ -390,37 +404,100 @@ void myKeyboardEvent(unsigned char key, int x, int y)
 		break;
 	case 'p': case 'P':   // Perspective projection
 		printf("min_X=%f4.2,max_X=%f4.2, min_Y=%f4.2, max_Y=%f4.2, min_Z=%f4.2, max_Z=%f4.2\n", (min_X), (max_X), (min_Y), (max_Y), (min_Z), (max_Z));
-		IndentifyMyTransformMatrix();
+		//IndentifyMyTransformMatrix();
 		//glFrustum(L, R, B, T, NEAR, FAR); // Truncated pyramid
 		//gluLookAt(0, 0, 1500, 0, 0, 0, 0, 1, 0); // assume your eye is a 0,0,0
 		//glFrustum(min_X*.5, max_X * .5, min_Y * .5, max_Y * .5, max_Z , min_Z );
 		//gluPerspective(fovy, aspectRatio, z - near, far);// easy way -Field Of View angle in degrees along y-axis   // Normalized then port in viewport.  Viewport is viewing volume after that
 		//gluLookAt(0, 0, 0, 0, 0, -10000, 0, 1, 0); // assume your eye is a 0,0,0
 		gluPerspective(0.1, aspectRatio, 10, -10);// easy way -Field Of View angle in degrees along y-axis   // Normalized then port in viewport.  Viewport is viewing volume after that
-		gluLookAt(0, 0, 1500, 0, 0, 0, 0, 1, 0); // assume your eye is a 0,0,0
+		//gluLookAt(0, 0, 1500, 0, 0, 0, 0, 1, 0); // assume your eye is a 0,0,0
+		eye[cX] = 0;
+		eye[cY] = 0;
+		eye[cZ] = 1500;
+		center[cX] = 0;
+		center[cY] = 0;
+		center[cZ] = 0;
+		up[cX] = 0;
+		up[cY] = 1;
+		up[cZ] = 0;
+		bLookAround = 1;
+		//gluLookAt(eye[cX], eye[cY], eye[cZ], center[cX], center[cY], center[cZ], up[cX], up[cY], up[cZ]); // assume your eye is a 0,0,0
 		break;
 	case 'o': 
-		IndentifyMyTransformMatrix();
-		gluLookAt(0, 0, 0, 0, 0, -10000, 0, 1, 0); // assume your eye is a 0,0,0
+		//IndentifyMyTransformMatrix();
+		//gluLookAt(0, 0, 0, 0, 0, -10000, 0, 1, 0); // assume your eye is a 0,0,0
+		eye[cX] = 0;
+		eye[cY] = 0;
+		eye[cZ] = 0;
+		center[cX] = 0;
+		center[cY] = 0;
+		center[cZ] = -10000;
+		up[cX] = 0;
+		up[cY] = 1;
+		up[cZ] = 0;
+		bLookAround = 1;
+		//gluLookAt(eye[cX], eye[cY], eye[cZ], center[cX], center[cY], center[cZ], up[cX], up[cY], up[cZ]); // assume your eye is a 0,0,0
 		break;
 	case 'O':   // Parallel orthographic projection, Front elevation
-		IndentifyMyTransformMatrix();
-		gluLookAt(0, 0, 10,    0, 0, 0,    0, 1, 0); // assume your eye is a 0,0,0
+		//IndentifyMyTransformMatrix();
+		//gluLookAt(0, 0, 10,    0, 0, 0,    0, 1, 0); // assume your eye is a 0,0,0
+		eye[cX] = 0;
+		eye[cY] = 0;
+		eye[cZ] = 10;
+		center[cX] = 0;
+		center[cY] = 0;
+		center[cZ] = 0;
+		up[cX] = 0;
+		up[cY] = 1;
+		up[cZ] = 0;
+		bLookAround = 1;
+		//gluLookAt(eye[cX], eye[cY], eye[cZ], center[cX], center[cY], center[cZ], up[cX], up[cY], up[cZ]); // assume your eye is a 0,0,0
 		break;
 	case 't': case 'T':   // Parallel orthographic projection, Top elevation
-		IndentifyMyTransformMatrix();
-		gluLookAt(0, 0, 0,    0, -10000, 0,    0, 0, -1); // assume your eye is at 0,0,0
+		//IndentifyMyTransformMatrix();
+		//gluLookAt(0, 0, 0,    0, -10000, 0,    0, 0, -1); // assume your eye is at 0,0,0
+		eye[cX] = 0;
+		eye[cY] = 0;
+		eye[cZ] = 0;
+		center[cX] = 0;
+		center[cY] = -10000;
+		center[cZ] = 0;
+		up[cX] = 0;
+		up[cY] = 0;
+		up[cZ] = -1;
+		bLookAround = 1;
+		//gluLookAt(eye[cX], eye[cY], eye[cZ], center[cX], center[cY], center[cZ], up[cX], up[cY], up[cZ]); // assume your eye is a 0,0,0
 		break;
 	case 's': 
-		IndentifyMyTransformMatrix();
-		//glOrtho(min_X * 3, max_X * 3, min_Y * 3, max_Y * 3, max_Z * 3, min_Z * 3);
-		//glOrtho(-1000, 1000, -1000, 1000, -1000, 1000);
-		gluLookAt(100, 0, 0,  0, 0, 0,   0, 1, 0); // assume the center is at 0,0,0
-		printf("min_X*3=%f4.2,max_X * 3=%f4.2, min_Y * 3=%f4.2, max_Y * 3=%f4.2, min_Z * 3=%f4.2, max_Z * 3=%f4.2\n",(min_X * 3),( max_X * 3),( min_Y * 3), (max_Y * 3), (min_Z * 3), (max_Z * 3));
+		//IndentifyMyTransformMatrix();
+		eye[cX] = 100;
+		eye[cY] = 0;
+		eye[cZ] = 0;
+		center[cX] = 0;
+		center[cY] = 0;
+		center[cZ] = 0;
+		up[cX] = 0;
+		up[cY] = 1;
+		up[cZ] = 0;
+		bLookAround = 1;
+		//gluLookAt(eye[cX], eye[cY], eye[cZ], center[cX], center[cY], center[cZ], up[cX], up[cY], up[cZ]); // assume your eye is a 0,0,0
+		//gluLookAt(100, 0, 0,  0, 0, 0,   0, 1, 0); // assume the center is at 0,0,0
 		break;
 	case 'S':   // Parallel orthographic projection, side elevation
-		IndentifyMyTransformMatrix();
-		gluLookAt(0, 0, 0,    -10000, 0, 0,    0, 1, 0); // assume your eye is at 0,0,0
+		//IndentifyMyTransformMatrix();
+		eye[cX] = 0;
+		eye[cY] = 0;
+		eye[cZ] = 0;
+		center[cX] = -10000;
+		center[cY] = 0;
+		center[cZ] = 0;
+		up[cX] = 0;
+		up[cY] = 1;
+		up[cZ] = 0;
+		bLookAround = 1;
+		//gluLookAt(eye[cX], eye[cY], eye[cZ], center[cX], center[cY], center[cZ], up[cX], up[cY], up[cZ]); // assume your eye is a 0,0,0
+		//gluLookAt(0, 0, 0,    -10000, 0, 0,    0, 1, 0); // assume your eye is at 0,0,0
 		printf("min_X=%f4.2,max_X=%f4.2, min_Y=%f4.2, max_Y=%f4.2, min_Z=%f4.2, max_Z=%f4.2\n", (min_X), (max_X), (min_Y), (max_Y), (min_Z), (max_Z));
 		break;
 
