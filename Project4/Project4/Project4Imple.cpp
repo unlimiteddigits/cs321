@@ -39,6 +39,9 @@ int cY = 1;
 int cZ = 2;
 int bLookAround = 1;
 
+int Perspective_view = 0;
+int multi_view_port = 0;
+
 GLfloat windowWidth = 600;
 GLfloat windowHeight = 400;
 GLfloat viewportWidth = VIEWSTARTW;
@@ -59,8 +62,8 @@ GLfloat myPrevScaleX=1.0, myPrevScaleY=1.0, myPrevScaleZ=1.0;
 
 GLfloat totalAngle = 0;
 
-GLdouble eye[3] = { 0,0,0 };
-GLdouble center[3] = { 0,0,-10000 };
+GLdouble eye[3] = { 0,0,3.0 };
+GLdouble center[3] = { 0,0,0 };
 GLdouble up[3] = { 0,1,0 };
 
 typedef GLfloat vertex4[4];
@@ -81,26 +84,27 @@ void init_Window_Attrubutes(int argc, char** argv) {
 	glutCreateWindow("Project 4");
 }
 
+
 void other_init()
 {
 	glClearColor(0.2f, 0.25f, 0.3f, 1.0f);		/* Set background color black */
 	glClearColor(0.9f, 0.925f, 0.93f, 1.0f);	/* Re-Set background color  white*/
 	glMatrixMode(GL_PROJECTION);		/* Modify Projection Matrix */
 	glLoadIdentity();					/* Set to identity matrix */
-	glOrtho(-2026.0/2, 2026.0 / 2, -2026.0 / 2, 2026.0 / 2, -3526.0 / 2, 3526.0 / 2);	/* Orthographic viewing volume */
+	glOrtho(-1.0, 1.0, -1.0, 1.0, -1.0, 1.0);	/* Orthographic viewing volume */
 	glutMouseFunc(myMouseEvent);		// run myMouseEvent when the user uses the mouse
 	//glutPassiveMotionFunc(MouseMotionEvent);
 	glutMotionFunc(MouseMotionEvent);
-	
+
 	glutKeyboardFunc(myKeyboardEvent);  // run myKeyboardEvent when the user presses a key
 	glutCloseFunc(myCloseEvent);        // myCloseEvent set the flags needed to stop the timer function
 	glutIdleFunc(DoBackgroundStuff);    // playing with more functions
 	glMatrixMode(GL_MODELVIEW);         // Get Back to the Modelview
+	IndentifyMyTransformMatrix();
 	//gluLookAt(eye[cX], eye[cY], eye[cZ], center[cX], center[cY], center[cZ], up[cX], up[cY], up[cZ]); // assume your eye is a 0,0,0
-//glFrustum(L, R, B, T, NEAR, FAR); // Truncated pyramid
-	//gluPerspective(fovy, aspect, z-near, far);// easy way -Field Of View angle in degrees along y-axis   // Normalized then port in viewport.  Viewport is viewing volume after that
-	// Day 18 - 10/29/2020 0:44:00
+
 }
+
 
 void DoBackgroundStuff() {
 	
@@ -131,26 +135,44 @@ void display(void)
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);	/* Clear color values */
 
-	glViewport((GLsizei)(((windowWidth - viewportWidth) / 2.0)+ viewportXOffset), (GLsizei)(((windowHeight - viewportHeight) / 2.0)+ viewportYOffset),(GLint) viewportWidth, (GLint) viewportHeight);
+	if (multi_view_port)
+	{
+		glViewport((GLsizei)0, (GLsizei)0, (GLint)viewportWidth, (GLint)viewportHeight);
+		glLoadIdentity();
+		gluLookAt(0.0, 0.0, -3.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
+		glViewport((GLsizei)0, (GLsizei)(windowHeight - viewportHeight), (GLint)viewportWidth, (GLint)viewportHeight);
+		glLoadIdentity();
+		gluLookAt(0.0, 0.0, 3.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
+		glViewport((GLsizei)(windowWidth - viewportWidth), (GLsizei)0, (GLint)viewportWidth, (GLint)viewportHeight);
+		glLoadIdentity();
+		gluLookAt(0.0, 3.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0);
+		glViewport((GLsizei)(windowWidth - viewportWidth), (GLsizei)(windowHeight - viewportHeight), (GLint)viewportWidth, (GLint)viewportHeight);
+		glLoadIdentity();
+		gluLookAt(0.0, -3.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0);
+
+	}
+	else {
+		glViewport((GLsizei)(((windowWidth - viewportWidth) / 2.0) + viewportXOffset), (GLsizei)(((windowHeight - viewportHeight) / 2.0) + viewportYOffset), (GLint)viewportWidth, (GLint)viewportHeight);
+		glColor3f(1.0, 0.0, 0.0);       // for the Red - need multiple windows
+
+		glMatrixMode(GL_MODELVIEW);
+		glPushMatrix();
+		glLoadIdentity();
+		glMatrixMode(GL_PROJECTION);
+		glPushMatrix();
+		glLoadIdentity();
+		glBegin(GL_LINE_STRIP);
+		glVertex3f(1.0f, 1.0f, 0.0f);  //upper right
+		glVertex3f(-1.0f, 1.0f, 0.0f); //upper left
+		glVertex3f(-1.0f, -0.990f, 0.0f);  // lower left
+		glVertex3f(0.990f, -0.99f, 0.0f); //Lower right
+		glVertex3f(0.990f, 0.99f, 0.0f); //upper right
+		glEnd();
+		glPopMatrix(); glMatrixMode(GL_MODELVIEW); glPopMatrix();
+
+	}
 	//ortho
 	//glOrtho(-2026.0, 2026.0, -2026.0, 2026.0, -3526.0, 3526.0);	/* Orthographic viewing volume */
-
-	glColor3f(1.0, 0.0, 0.0);       // for the Red - need multiple windows
-
-	glMatrixMode(GL_MODELVIEW);
-	glPushMatrix(); 
-	glLoadIdentity(); 
-	glMatrixMode(GL_PROJECTION);
-	glPushMatrix(); 
-	glLoadIdentity();
-	glBegin(GL_LINE_STRIP); 
-	glVertex3f(1.0f, 1.0f, 0.0f);  //upper right
-	glVertex3f(-1.0f, 1.0f, 0.0f); //upper left
-	glVertex3f(-1.0f, -0.990f, 0.0f);  // lower left
-	glVertex3f(0.990f,-0.99f, 0.0f); //Lower right
-	glVertex3f(0.990f, 0.99f, 0.0f); //upper right
-	glEnd();
-	glPopMatrix(); glMatrixMode(GL_MODELVIEW); glPopMatrix();
 
 	glColor3f(0.0, 0.0, 1.0);		/* Set foreground color */
 	glPointSize(4.0);				/* Set point size */
@@ -159,6 +181,21 @@ void display(void)
 
 	if (bLookAround)
 	{
+		IndentifyMyTransformMatrix();
+		printf("Viewport = %d\n", Perspective_view);
+		if (Perspective_view)
+		{
+			glMatrixMode(GL_PROJECTION);
+			glLoadIdentity();
+			glFrustum(-1.0, 1.0, -1.0, 1.0, 2.0, 4.0);
+			glMatrixMode(GL_MODELVIEW);
+		}
+		else
+		{
+			glMatrixMode(GL_PROJECTION);
+			glLoadIdentity();
+			glMatrixMode(GL_MODELVIEW);
+		}
 		gluLookAt(eye[cX], eye[cY], eye[cZ], center[cX], center[cY], center[cZ], up[cX], up[cY], up[cZ]); // assume your eye is a 0,0,0
 		bLookAround = 0;
 	}
@@ -219,6 +256,7 @@ void display(void)
 	glutSwapBuffers();
 
 }
+
 
 void drawString(float x, float y, float z, char* mystring) {
 	glRasterPos3f(x, y, z);
@@ -281,11 +319,13 @@ void myKeyboardEvent(unsigned char key, int x, int y)
 	double centerZ = (min_Z + max_Z) / 2;
 	float aspectRatio = (float)width / (float)height;
 	//float projectionMatrix[];
+	height = 2;
+	width = 2;
 
 	switch (key) {
 		// Move img up
 	case 'u':  //  object stays, viewport moves to simulate viewing wolume move
-		glTranslatef(0.0f, (float)(height * -.1), 0.0f);
+		glTranslatef(0.0f, (float)(height * (-.1)), 0.0f);
 		viewportYOffset += (float)(viewportHeight * .1);
 		break;
 	case 'U':  // viewport stays, object moves
@@ -402,103 +442,71 @@ void myKeyboardEvent(unsigned char key, int x, int y)
 	case 'i': case 'I':
 		IndentifyMyTransformMatrix();
 		break;
+	case 'v': case 'V':   // 4 viewport Perspective
+		multi_view_port = 1;
+		glViewport((GLsizei)0, (GLsizei)0, (GLint)viewportWidth, (GLint)viewportHeight);
+		glLoadIdentity();
+		gluLookAt(0.0, 0.0, 0, 0.0, 0.0, -3.0, 0.0, 1.0, 0.0); //like 'o'
+		display();
+		glViewport((GLsizei)0, (GLsizei)(windowHeight - viewportHeight), (GLint)viewportWidth, (GLint)viewportHeight);
+		glLoadIdentity();
+		gluLookAt(0.0, 0.0, 0.0, 0.0, -3.0, 0.0, 0.0, 0.0, -1.0); //like 't'
+		display();
+		glViewport((GLsizei)(windowWidth - viewportWidth), (GLsizei)0, (GLint)viewportWidth, (GLint)viewportHeight);
+		glLoadIdentity();
+		gluLookAt(0.0, 0.0, 0.0, 3.0, 0.0, 0.0, 0.0, 1.0, 0.0); //like 's'
+		display();
+		glViewport((GLsizei)(windowWidth - viewportWidth), (GLsizei)(windowHeight - viewportHeight), (GLint)viewportWidth, (GLint)viewportHeight);
+		glLoadIdentity();
+		gluLookAt(0.0, 0.0, 0.0, 3.0, -1.0, -3.0, 0.0, 1.0, 0.0); // like 'p'
+		display();
+
+		break;
 	case 'p': case 'P':   // Perspective projection
-		printf("min_X=%f4.2,max_X=%f4.2, min_Y=%f4.2, max_Y=%f4.2, min_Z=%f4.2, max_Z=%f4.2\n", (min_X), (max_X), (min_Y), (max_Y), (min_Z), (max_Z));
-		//IndentifyMyTransformMatrix();
-		//glFrustum(L, R, B, T, NEAR, FAR); // Truncated pyramid
-		//gluLookAt(0, 0, 1500, 0, 0, 0, 0, 1, 0); // assume your eye is a 0,0,0
-		//glFrustum(min_X*.5, max_X * .5, min_Y * .5, max_Y * .5, max_Z , min_Z );
-		//gluPerspective(fovy, aspectRatio, z - near, far);// easy way -Field Of View angle in degrees along y-axis   // Normalized then port in viewport.  Viewport is viewing volume after that
-		//gluLookAt(0, 0, 0, 0, 0, -10000, 0, 1, 0); // assume your eye is a 0,0,0
-		gluPerspective(0.1, aspectRatio, 10, -10);// easy way -Field Of View angle in degrees along y-axis   // Normalized then port in viewport.  Viewport is viewing volume after that
-		//gluLookAt(0, 0, 1500, 0, 0, 0, 0, 1, 0); // assume your eye is a 0,0,0
-		eye[cX] = 0;
-		eye[cY] = 0;
-		eye[cZ] = 1500;
-		center[cX] = 0;
-		center[cY] = 0;
-		center[cZ] = 0;
-		up[cX] = 0;
-		up[cY] = 1;
-		up[cZ] = 0;
+		multi_view_port = 0;
+		Perspective_view = 1;
+		eye[cX] = 0; eye[cY] = 0; eye[cZ] = 3.0;
+		center[cX] = 0;	center[cY] = 0;	center[cZ] = 0;
+		up[cX] = 0;	up[cY] = 1;	up[cZ] = 0;
 		bLookAround = 1;
-		//gluLookAt(eye[cX], eye[cY], eye[cZ], center[cX], center[cY], center[cZ], up[cX], up[cY], up[cZ]); // assume your eye is a 0,0,0
 		break;
-	case 'o': 
-		//IndentifyMyTransformMatrix();
-		//gluLookAt(0, 0, 0, 0, 0, -10000, 0, 1, 0); // assume your eye is a 0,0,0
-		eye[cX] = 0;
-		eye[cY] = 0;
-		eye[cZ] = 0;
-		center[cX] = 0;
-		center[cY] = 0;
-		center[cZ] = -10000;
-		up[cX] = 0;
-		up[cY] = 1;
-		up[cZ] = 0;
+	case 'o':case 'O':   // Parallel orthographic projection, Front elevation
+		multi_view_port = 0;
+		Perspective_view = 0;
+		eye[cX] = 0; eye[cY] = 0; eye[cZ] = 0.0;
+		center[cX] = 0; center[cY] = 0; center[cZ] = -3.0;
+		up[cX] = 0;	up[cY] = 1;	up[cZ] = 0;
 		bLookAround = 1;
-		//gluLookAt(eye[cX], eye[cY], eye[cZ], center[cX], center[cY], center[cZ], up[cX], up[cY], up[cZ]); // assume your eye is a 0,0,0
 		break;
-	case 'O':   // Parallel orthographic projection, Front elevation
-		//IndentifyMyTransformMatrix();
-		//gluLookAt(0, 0, 10,    0, 0, 0,    0, 1, 0); // assume your eye is a 0,0,0
-		eye[cX] = 0;
-		eye[cY] = 0;
-		eye[cZ] = 10;
-		center[cX] = 0;
-		center[cY] = 0;
-		center[cZ] = 0;
-		up[cX] = 0;
-		up[cY] = 1;
-		up[cZ] = 0;
+	case 't': case 'T':    // Parallel orthographic projection, Top elevation
+		IndentifyMyTransformMatrix();
+		Perspective_view = 0;
+		eye[cX] = 0; eye[cY] = 0;	eye[cZ] = 0;
+		center[cX] = 0;	center[cY] = -3.0;	center[cZ] = 0;
+		up[cX] = 0;	up[cY] = 0;	up[cZ] = -1;
 		bLookAround = 1;
-		//gluLookAt(eye[cX], eye[cY], eye[cZ], center[cX], center[cY], center[cZ], up[cX], up[cY], up[cZ]); // assume your eye is a 0,0,0
 		break;
-	case 't': case 'T':   // Parallel orthographic projection, Top elevation
-		//IndentifyMyTransformMatrix();
-		//gluLookAt(0, 0, 0,    0, -10000, 0,    0, 0, -1); // assume your eye is at 0,0,0
-		eye[cX] = 0;
-		eye[cY] = 0;
-		eye[cZ] = 0;
-		center[cX] = 0;
-		center[cY] = -10000;
-		center[cZ] = 0;
-		up[cX] = 0;
-		up[cY] = 0;
-		up[cZ] = -1;
+	case 'S': case 's':   // Parallel orthographic projection, side elevation
+		IndentifyMyTransformMatrix();
+		eye[cX] = 0;	eye[cY] = 0;	eye[cZ] = 0;
+		center[cX] = 3.0;	center[cY] = 0;	center[cZ] = 0;
+		up[cX] = 0;		up[cY] = 1;		up[cZ] = 0;
 		bLookAround = 1;
-		//gluLookAt(eye[cX], eye[cY], eye[cZ], center[cX], center[cY], center[cZ], up[cX], up[cY], up[cZ]); // assume your eye is a 0,0,0
 		break;
-	case 's': 
-		//IndentifyMyTransformMatrix();
-		eye[cX] = 100;
-		eye[cY] = 0;
-		eye[cZ] = 0;
-		center[cX] = 0;
-		center[cY] = 0;
-		center[cZ] = 0;
-		up[cX] = 0;
-		up[cY] = 1;
-		up[cZ] = 0;
+	case 'f':  case 'F':  // Parallel orthographic projection, side elevation
+		IndentifyMyTransformMatrix();
+		if (center[cX]) eye[cX] += .1;
+		if (center[cY]) eye[cY] += .1;
+		if (center[cZ]) eye[cZ] += .1;
 		bLookAround = 1;
-		//gluLookAt(eye[cX], eye[cY], eye[cZ], center[cX], center[cY], center[cZ], up[cX], up[cY], up[cZ]); // assume your eye is a 0,0,0
-		//gluLookAt(100, 0, 0,  0, 0, 0,   0, 1, 0); // assume the center is at 0,0,0
 		break;
-	case 'S':   // Parallel orthographic projection, side elevation
-		//IndentifyMyTransformMatrix();
-		eye[cX] = 0;
-		eye[cY] = 0;
-		eye[cZ] = 0;
-		center[cX] = -10000;
-		center[cY] = 0;
-		center[cZ] = 0;
-		up[cX] = 0;
-		up[cY] = 1;
-		up[cZ] = 0;
+
+	case 'N':  case 'n':  // Parallel orthographic projection, side elevation
+		IndentifyMyTransformMatrix();
+		if (center[cX]) eye[cX] -= .1;
+		if (center[cY]) eye[cY] -= .1;
+		if (center[cZ]) eye[cZ] -= .1;
 		bLookAround = 1;
-		//gluLookAt(eye[cX], eye[cY], eye[cZ], center[cX], center[cY], center[cZ], up[cX], up[cY], up[cZ]); // assume your eye is a 0,0,0
-		//gluLookAt(0, 0, 0,    -10000, 0, 0,    0, 1, 0); // assume your eye is at 0,0,0
-		printf("min_X=%f4.2,max_X=%f4.2, min_Y=%f4.2, max_Y=%f4.2, min_Z=%f4.2, max_Z=%f4.2\n", (min_X), (max_X), (min_Y), (max_Y), (min_Z), (max_Z));
 		break;
 
 		// If the 'q' or 'Q' key is pressed, the program exits.
@@ -586,6 +594,7 @@ void IndentifyMyTransformMatrix()
 	viewportWidth = VIEWSTARTW;
 	viewportHeight = VIEWSTARTH;
 	glLoadIdentity();
+	printf("eye_X=%f1.2,eye_Y=%f1.2, eye_Z=%f1.2, center_X=%f1.2, center_Y=%f1.2, center_Z=%f1.2\n", (eye[cX]), (eye[cY]), (eye[cZ]), (center[cX]), (center[cY]), (center[cZ]));
 }
 
 //for the exit using the mouse click to X
@@ -749,6 +758,7 @@ void ReadDataBySpace() {
 	max_Y = 0;
 	min_Z = 0;
 	max_Z = 0;
+	double myNormalizer = 0;
 
 	fp.seekg(fp.beg);  // rewind the file or fp.seekg(0);
 
@@ -825,11 +835,37 @@ void ReadDataBySpace() {
 			i++;
 		}
 	}
+
+
 	//printf("Loop ends.\n");
 	*(arrayPtr + (arrayRowCount-1) * arrayColCount + 3) = 2;
 	average_X = sum_X / ave_count;
 	average_Y = sum_Y / ave_count;
 	average_Z = sum_Z / ave_count;
+	
+	myNormalizer = abs(min_X);
+	if (myNormalizer < abs(min_Y)) myNormalizer = abs(min_Y);
+	if (myNormalizer < abs(min_Z)) myNormalizer = abs(min_Z);
+	if (myNormalizer < abs(max_X)) myNormalizer = abs(max_X);
+	if (myNormalizer < abs(max_Y)) myNormalizer = abs(max_Y);
+	if (myNormalizer < abs(max_Z)) myNormalizer = abs(max_Z);
+
+	max_X = max_X / myNormalizer;
+	max_Y = max_Y / myNormalizer;
+	max_Z = max_Z / myNormalizer;
+	min_X = min_X / myNormalizer;
+	min_Y = min_Y / myNormalizer;
+	min_Z = min_Z / myNormalizer;
+
+	j = i;
+	for (i = 0; i < j; i++) {
+		//printf("before i=%d array=X%.1f Y%.1f Z%.1f\n", i, *(arrayPtr + i * arrayColCount), *(arrayPtr + i * arrayColCount + 1), *(arrayPtr + i * arrayColCount + 2));
+		arrayPtr[i * arrayColCount] = arrayPtr[i * arrayColCount] / myNormalizer;
+		arrayPtr[i * arrayColCount + 1] = arrayPtr[i * arrayColCount + 1] / myNormalizer;
+		arrayPtr[i * arrayColCount + 2] = arrayPtr[i * arrayColCount + 2] / myNormalizer;
+		//printf("after i=%d array=X%.4f Y%.4f Z%.4f\n", i, *(arrayPtr + i * arrayColCount), *(arrayPtr + i * arrayColCount + 1), *(arrayPtr + i * arrayColCount + 2));
+	}
+
 	printf("Average_X=%f", average_X);
 	printf("Average_Y=%f", average_Y);
 	printf("Average_Z=%f\n", average_Z);
