@@ -37,5 +37,6 @@ void TranslateMyTransformMatrix(GLfloat x, GLfloat y, GLfloat z);
 void ScaleMyTransformMatrix(GLfloat myScaleX, GLfloat myScaleY, GLfloat myScaleZ);
 void IndentifyMyTransformMatrix();
 void RotateMyTransformMatrix(GLfloat myAngle, GLfloat x, GLfloat y, GLfloat z);
-void drawstuff();
+void drawImgData();
+void drawBorder();
 #endif

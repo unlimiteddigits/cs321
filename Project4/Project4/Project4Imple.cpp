@@ -102,7 +102,6 @@ void other_init()
 	glMatrixMode(GL_MODELVIEW);         // Get Back to the Modelview
 	IndentifyMyTransformMatrix();
 	//gluLookAt(eye[cX], eye[cY], eye[cZ], center[cX], center[cY], center[cZ], up[cX], up[cY], up[cZ]); // assume your eye is a 0,0,0
-
 }
 
 
@@ -122,62 +121,40 @@ void FixViewport(int width, int height) {
 // callback for Part B of the assignment
 void display(void)
 {
-	int i, row,column;									// loop counter 
-	GLfloat fX, fY, fZ;						// place holders for the vertices 
-	GLfloat prev_fX=0, prev_fY=0, prev_fZ=0;//remember the last point encountered in the array (place holers for simple reading- memory is cheap)
-	int fJump=0;                            // Flag for encountering the "J"ump
-	char X_Label[] = "X-Axis";
-	char Y_Label[] = "Y-Axis";
-	char Z_Label[] = "Z-Axis";
-	vertex4 myVertMatrix;
-	vertex4 myResultMatrix = { 0,0,0,0 };
-	GLfloat test1=0, test2=0;
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);	/* Clear color values */
-
-	if (multi_view_port)
-	{
-		glViewport((GLsizei)0, (GLsizei)0, (GLint)viewportWidth, (GLint)viewportHeight);
-		glLoadIdentity();
-		gluLookAt(0.0, 0.0, -3.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
-		glViewport((GLsizei)0, (GLsizei)(windowHeight - viewportHeight), (GLint)viewportWidth, (GLint)viewportHeight);
-		glLoadIdentity();
-		gluLookAt(0.0, 0.0, 3.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
-		glViewport((GLsizei)(windowWidth - viewportWidth), (GLsizei)0, (GLint)viewportWidth, (GLint)viewportHeight);
-		glLoadIdentity();
-		gluLookAt(0.0, 3.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0);
-		glViewport((GLsizei)(windowWidth - viewportWidth), (GLsizei)(windowHeight - viewportHeight), (GLint)viewportWidth, (GLint)viewportHeight);
-		glLoadIdentity();
-		gluLookAt(0.0, -3.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0);
-
-	}
-	else {
-		glViewport((GLsizei)(((windowWidth - viewportWidth) / 2.0) + viewportXOffset), (GLsizei)(((windowHeight - viewportHeight) / 2.0) + viewportYOffset), (GLint)viewportWidth, (GLint)viewportHeight);
-		glColor3f(1.0, 0.0, 0.0);       // for the Red - need multiple windows
-
-		glMatrixMode(GL_MODELVIEW);
-		glPushMatrix();
-		glLoadIdentity();
-		glMatrixMode(GL_PROJECTION);
-		glPushMatrix();
-		glLoadIdentity();
-		glBegin(GL_LINE_STRIP);
-		glVertex3f(1.0f, 1.0f, 0.0f);  //upper right
-		glVertex3f(-1.0f, 1.0f, 0.0f); //upper left
-		glVertex3f(-1.0f, -0.990f, 0.0f);  // lower left
-		glVertex3f(0.990f, -0.99f, 0.0f); //Lower right
-		glVertex3f(0.990f, 0.99f, 0.0f); //upper right
-		glEnd();
-		glPopMatrix(); glMatrixMode(GL_MODELVIEW); glPopMatrix();
-
-	}
-	//ortho
-	//glOrtho(-2026.0, 2026.0, -2026.0, 2026.0, -3526.0, 3526.0);	/* Orthographic viewing volume */
-
 	glColor3f(0.0, 0.0, 1.0);		/* Set foreground color */
 	glPointSize(4.0);				/* Set point size */
 	glColor3f(1.0, 0.0, 0.0);       // for the red - on blackish
 	glLineWidth(2.0);				/* Set line width */
+
+
+	if (multi_view_port)
+	{
+		IndentifyMyTransformMatrix();
+		glMatrixMode(GL_MODELVIEW);
+		printf("Viewport = %d\n", Perspective_view);
+		glViewport((GLsizei)0, (GLsizei)0, (GLint)viewportWidth, (GLint)viewportHeight);
+		glLoadIdentity();
+		//gluLookAt(0.0, 0.0, -3.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
+		gluLookAt(0, 0, 0, 0, 0, -3.0, 0, 1, 0); // 'O'
+		drawImgData(); //display();
+		glViewport((GLsizei)0, (GLsizei)(windowHeight - viewportHeight), (GLint)viewportWidth, (GLint)viewportHeight);
+		glLoadIdentity();
+		gluLookAt(0, 0, 0, 0, -3.0, 0, 0, 0, -1); // 'T'
+		drawImgData(); //display();
+		glViewport((GLsizei)(windowWidth - viewportWidth), (GLsizei)0, (GLint)viewportWidth, (GLint)viewportHeight);
+		glLoadIdentity();
+		gluLookAt(0, 0, 0, 3.0, 0, 0, 0, 1, 0); // 'S'
+		drawImgData(); //display();
+		glViewport((GLsizei)(windowWidth - viewportWidth), (GLsizei)(windowHeight - viewportHeight), (GLint)viewportWidth, (GLint)viewportHeight);
+		//glLoadIdentity();
+		//gluLookAt(0.0, -3.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0);
+		//drawImgData(); //display();
+	}
+	else {
+		drawBorder();
+	}
 
 	if (bLookAround)
 	{
@@ -199,6 +176,44 @@ void display(void)
 		gluLookAt(eye[cX], eye[cY], eye[cZ], center[cX], center[cY], center[cZ], up[cX], up[cY], up[cZ]); // assume your eye is a 0,0,0
 		bLookAround = 0;
 	}
+	//drawImgData();
+	//glFlush();						/* Clear event buffer */
+	//Sleep(50);                  // the timer is restricted below
+	glutSwapBuffers();
+
+}
+
+void drawBorder() {
+	glViewport((GLsizei)(((windowWidth - viewportWidth) / 2.0) + viewportXOffset), (GLsizei)(((windowHeight - viewportHeight) / 2.0) + viewportYOffset), (GLint)viewportWidth, (GLint)viewportHeight);
+	glColor3f(1.0, 0.0, 0.0);       // for the Red - need multiple windows
+
+	glMatrixMode(GL_MODELVIEW);
+	glPushMatrix();
+	glLoadIdentity();
+	glMatrixMode(GL_PROJECTION);
+	glPushMatrix();
+	glLoadIdentity();
+	glBegin(GL_LINE_STRIP);
+	glVertex3f(1.0f, 1.0f, 0.0f);  //upper right
+	glVertex3f(-1.0f, 1.0f, 0.0f); //upper left
+	glVertex3f(-1.0f, -0.990f, 0.0f);  // lower left
+	glVertex3f(0.990f, -0.99f, 0.0f); //Lower right
+	glVertex3f(0.990f, 0.99f, 0.0f); //upper right
+	glEnd();
+	glPopMatrix(); glMatrixMode(GL_MODELVIEW); glPopMatrix();
+}
+void drawImgData() {
+	int i, row, column;									// loop counter 
+	GLfloat fX, fY, fZ;						// place holders for the vertices 
+	GLfloat prev_fX = 0, prev_fY = 0, prev_fZ = 0;//remember the last point encountered in the array (place holers for simple reading- memory is cheap)
+	int fJump = 0;                            // Flag for encountering the "J"ump
+	char X_Label[] = "X-Axis";
+	char Y_Label[] = "Y-Axis";
+	char Z_Label[] = "Z-Axis";
+	vertex4 myVertMatrix;
+	vertex4 myResultMatrix = { 0,0,0,0 };
+	GLfloat test1 = 0, test2 = 0;
+
 	glBegin(GL_LINES);
 	for (i = 0; i < arrayRowCount; i = i + 1) {
 		fX = (GLfloat) * (arrayPtr + i * arrayColCount);
@@ -208,7 +223,7 @@ void display(void)
 		myVertMatrix[1] = (GLfloat) * (arrayPtr + i * arrayColCount + 1);
 		myVertMatrix[2] = *(arrayPtr + i * arrayColCount + 2);
 		myVertMatrix[3] = 1;
-		fJump =(int) *(arrayPtr + i * arrayColCount + 3);   // 4th dimension of the array used to flag where the "J" was in the file
+		fJump = (int)*(arrayPtr + i * arrayColCount + 3);   // 4th dimension of the array used to flag where the "J" was in the file
 
 		//myVert = myTransformMatrix * myVert;
 		// Multiplying matrix a and b and storing in array mult.
@@ -221,13 +236,13 @@ void display(void)
 			}
 			//test2 = 0;
 		}
-		fX = (GLfloat) myResultMatrix[0];
-		fY = (GLfloat) myResultMatrix[1];
-		fZ = (GLfloat) myResultMatrix[2];
+		fX = (GLfloat)myResultMatrix[0];
+		fY = (GLfloat)myResultMatrix[1];
+		fZ = (GLfloat)myResultMatrix[2];
 		//fJump = (int) myResultMatrix[3];
 
-		if (i>447)
-			fZ= (GLfloat)myResultMatrix[2];
+		if (i > 447)
+			fZ = (GLfloat)myResultMatrix[2];
 		switch (fJump)
 		{
 		case 1:                                 // Start drawing on the next vertex  We just jumped here (J)
@@ -237,11 +252,11 @@ void display(void)
 			break;
 		case 2:                                 // Create the last line segment before another jump (J)
 			glVertex3f(prev_fX, prev_fY, prev_fZ);
-			glVertex3f(fX+ (xSkewMultiplier* xDistortion), fY + (ySkewMultiplier * yDistortion), fZ);
+			glVertex3f(fX + (xSkewMultiplier * xDistortion), fY + (ySkewMultiplier * yDistortion), fZ);
 			break;
 		default:                                // Normally just draw line segments and connect the dots.
 			glVertex3f(prev_fX, prev_fY, prev_fZ);
-			glVertex3f(fX+ (xSkewMultiplier * xDistortion), fY + (ySkewMultiplier * yDistortion), fZ);
+			glVertex3f(fX + (xSkewMultiplier * xDistortion), fY + (ySkewMultiplier * yDistortion), fZ);
 			prev_fX = fX;
 			prev_fY = fY;
 			prev_fZ = fZ;
@@ -250,13 +265,7 @@ void display(void)
 
 	}
 	glEnd();
-	
-	glFlush();						/* Clear event buffer */
-	//Sleep(50);                  // the timer is restricted below
-	glutSwapBuffers();
-
 }
-
 
 void drawString(float x, float y, float z, char* mystring) {
 	glRasterPos3f(x, y, z);
@@ -444,23 +453,6 @@ void myKeyboardEvent(unsigned char key, int x, int y)
 		break;
 	case 'v': case 'V':   // 4 viewport Perspective
 		multi_view_port = 1;
-		glViewport((GLsizei)0, (GLsizei)0, (GLint)viewportWidth, (GLint)viewportHeight);
-		glLoadIdentity();
-		gluLookAt(0.0, 0.0, 0, 0.0, 0.0, -3.0, 0.0, 1.0, 0.0); //like 'o'
-		display();
-		glViewport((GLsizei)0, (GLsizei)(windowHeight - viewportHeight), (GLint)viewportWidth, (GLint)viewportHeight);
-		glLoadIdentity();
-		gluLookAt(0.0, 0.0, 0.0, 0.0, -3.0, 0.0, 0.0, 0.0, -1.0); //like 't'
-		display();
-		glViewport((GLsizei)(windowWidth - viewportWidth), (GLsizei)0, (GLint)viewportWidth, (GLint)viewportHeight);
-		glLoadIdentity();
-		gluLookAt(0.0, 0.0, 0.0, 3.0, 0.0, 0.0, 0.0, 1.0, 0.0); //like 's'
-		display();
-		glViewport((GLsizei)(windowWidth - viewportWidth), (GLsizei)(windowHeight - viewportHeight), (GLint)viewportWidth, (GLint)viewportHeight);
-		glLoadIdentity();
-		gluLookAt(0.0, 0.0, 0.0, 3.0, -1.0, -3.0, 0.0, 1.0, 0.0); // like 'p'
-		display();
-
 		break;
 	case 'p': case 'P':   // Perspective projection
 		multi_view_port = 0;
@@ -471,6 +463,7 @@ void myKeyboardEvent(unsigned char key, int x, int y)
 		bLookAround = 1;
 		break;
 	case 'o':case 'O':   // Parallel orthographic projection, Front elevation
+		IndentifyMyTransformMatrix();
 		multi_view_port = 0;
 		Perspective_view = 0;
 		eye[cX] = 0; eye[cY] = 0; eye[cZ] = 0.0;
@@ -480,6 +473,7 @@ void myKeyboardEvent(unsigned char key, int x, int y)
 		break;
 	case 't': case 'T':    // Parallel orthographic projection, Top elevation
 		IndentifyMyTransformMatrix();
+		multi_view_port = 0;
 		Perspective_view = 0;
 		eye[cX] = 0; eye[cY] = 0;	eye[cZ] = 0;
 		center[cX] = 0;	center[cY] = -3.0;	center[cZ] = 0;
@@ -488,6 +482,8 @@ void myKeyboardEvent(unsigned char key, int x, int y)
 		break;
 	case 'S': case 's':   // Parallel orthographic projection, side elevation
 		IndentifyMyTransformMatrix();
+		multi_view_port = 0;
+		Perspective_view = 0;
 		eye[cX] = 0;	eye[cY] = 0;	eye[cZ] = 0;
 		center[cX] = 3.0;	center[cY] = 0;	center[cZ] = 0;
 		up[cX] = 0;		up[cY] = 1;		up[cZ] = 0;
