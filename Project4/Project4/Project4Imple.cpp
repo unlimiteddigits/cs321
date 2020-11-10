@@ -454,7 +454,7 @@ void myKeyboardEvent(unsigned char key, int x, int y)
 	case 'v': case 'V':   // 4 viewport Perspective
 		multi_view_port = 1;
 		break;
-	case 'p': case 'P':   // Perspective projection
+	case 'p': case 'P':   // Perspective projection 
 		multi_view_port = 0;
 		Perspective_view = 1;
 		eye[cX] = 0; eye[cY] = 0; eye[cZ] = 3.0;
