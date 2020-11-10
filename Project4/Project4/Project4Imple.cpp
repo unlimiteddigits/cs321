@@ -176,7 +176,7 @@ void display(void)
 		gluLookAt(eye[cX], eye[cY], eye[cZ], center[cX], center[cY], center[cZ], up[cX], up[cY], up[cZ]); // assume your eye is a 0,0,0
 		bLookAround = 0;
 	}
-	//drawImgData();
+	drawImgData();
 	//glFlush();						/* Clear event buffer */
 	//Sleep(50);                  // the timer is restricted below
 	glutSwapBuffers();
