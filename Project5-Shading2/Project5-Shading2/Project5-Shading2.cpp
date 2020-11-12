@@ -8,20 +8,33 @@ Without Light Source with material color using material properties
 #include <time.h>
 
 static GLint width, height;
-static GLfloat LR = -3.0;
+static GLfloat LR = -2.0;
 static GLfloat theta = 0;
 
-GLfloat vertices[] = { -1.0,-1.0,-1.0,1.0,-1.0,-1.0,
-		1.0,1.0,-1.0, -1.0,1.0,-1.0, -1.0,-1.0,1.0,
-		1.0,-1.0,1.0, 1.0,1.0,1.0, -1.0,1.0,1.0 };
+GLfloat vertices[] = {  -1.0,-1.0,-1.0,   
+						 1.0,-1.0,-1.0, /*  back side 4 */
+						 1.0, 1.0,-1.0,    /* top side   */
+						-1.0, 1.0,-1.0,    /* Left Side  */
+						-1.0,-1.0, 1.0,    /* Right Side */
+						 1.0,-1.0, 1.0, /* Front Side 4 */
+						 1.0, 1.0, 1.0,    /* Bottom Side*/
+						-1.0, 1.0, 1.0 };
 
-GLfloat colors[] = { 0.2, 0.2, 0.2, 0.35, 0.35, 0.35,
-					0.5, 0.5, 0.5, 0.65, 0.65, 0.65,
-					0.8, 0.8, 0.8, 0.95, 0.95, 0.95 };
+GLfloat colors[] = { 0.9, 0.1, 0.1,			/*  back side - Red */
+					0.935, 0.35, 0.935,		/* top side - purple*/
+					0.05, 0.95, 0.05,		/* Left Side - green */
+					0.065, 0.065, 0.95,		/* Right Side - blue */
+					1, 1, 0,				/* Front Side - yellow */
+					0.995, 0.995, 0.995 };  /* Bottom Side - White */
 
-GLfloat normals[] = { -1.0,-1.0,-1.0,1.0,-1.0,-1.0,
-	1.0,1.0,-1.0, -1.0,1.0,-1.0, -1.0,-1.0,1.0,
-	1.0,-1.0,1.0, 1.0,1.0,1.0, -1.0,1.0,1.0 };
+GLfloat normals[] = { -1.0,-1.0,-1.0, 
+						1.0,-1.0,-1.0,
+						1.0,1.0,-1.0, 
+						-1.0,1.0,-1.0, 
+						-1.0,-1.0,1.0,
+						1.0,-1.0,1.0, 
+						1.0,1.0,1.0,  
+						-1.0,1.0,1.0 };
 
 GLfloat ambient_light[] = { 0.6, 0.6, 0.6, 1.0 };
 GLfloat emission_light[] = { 0.5, 0.5, 1.0, 1.0 };
@@ -76,7 +89,7 @@ void display(void)
 
 void spinCube(void)
 {
-	theta += 5.0;
+	theta += 01.0;
 	if (theta > 360.0) theta -= 360.0;
 	sleep((clock_t)(0.1 * CLOCKS_PER_SEC));
 	glutPostRedisplay();
