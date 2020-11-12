@@ -11,20 +11,20 @@ static GLint width, height;
 static GLfloat LR = -2.0;
 static GLfloat theta = 0;
 
-GLfloat vertices[] = {  -1.0,-1.0,-1.0,   
-						 1.0,-1.0,-1.0, /*  back side 4 */
-						 1.0, 1.0,-1.0,    /* top side   */
-						-1.0, 1.0,-1.0,    /* Left Side  */
-						-1.0,-1.0, 1.0,    /* Right Side */
-						 1.0,-1.0, 1.0, /* Front Side 4 */
-						 1.0, 1.0, 1.0,    /* Bottom Side*/
-						-1.0, 1.0, 1.0 };
+GLfloat vertices[] = {  -1.0,-1.0,-1.0,    /* 0 */
+						 1.0,-1.0,-1.0,    /* 1 */
+						 1.0, 1.0,-1.0,    /* 2 */
+						-1.0, 1.0,-1.0,    /* 3 */
+						-1.0,-1.0, 1.0,    /* 4 */
+						 1.0,-1.0, 1.0,    /* 5 */
+						 1.0, 1.0, 1.0,    /* 6 */
+						-1.0, 1.0, 1.0 };  /* 7 */
 
 GLfloat colors[] = { 0.9, 0.1, 0.1,			/*  back side - Red */
 					0.935, 0.35, 0.935,		/* top side - purple*/
 					0.05, 0.95, 0.05,		/* Left Side - green */
 					0.065, 0.065, 0.95,		/* Right Side - blue */
-					1, 1, 0,				/* Front Side - yellow */
+					.992, 1, 0,				/* Front Side - yellow */
 					0.995, 0.995, 0.995 };  /* Bottom Side - White */
 
 GLfloat normals[] = { -1.0,-1.0,-1.0, 
