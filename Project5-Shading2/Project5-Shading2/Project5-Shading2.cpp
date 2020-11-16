@@ -78,11 +78,11 @@ void display(void)
 	glLoadIdentity();
 	glRotatef(30, 1.0, 0.0, 0.0);
 	glRotatef(theta, 0.0, 1.0, 0.0);
-	glRotatef(30, 0.0, 0.0, 1.0);
+	glRotatef(-theta, 0.0, 0.0, 1.0);
 
 	draw_cube(0, 3, 2, 1, 0);	draw_cube(2, 3, 7, 6, 1);
 	draw_cube(0, 4, 7, 3, 2);	draw_cube(1, 2, 6, 5, 3);
-	draw_cube(4, 5, 6, 7, 4);	draw_cube(0, 1, 5, 4, 5);
+	/*draw_cube(4, 5, 6, 7, 4);	draw_cube(0, 1, 5, 4, 5);*/
 	glFlush();
 	glutSwapBuffers();
 }
