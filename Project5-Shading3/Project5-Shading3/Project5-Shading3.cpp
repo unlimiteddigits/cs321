@@ -1,14 +1,24 @@
 /*	Shading Example #3
 	Example of using glut objects */
 
+#ifndef M_PI
+#define M_PI (3.14159265358979323846264338327950288)
+#endif
+
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <GL/freeglut.h>
 #include <stdlib.h>
 #include <time.h>
 #include <stdio.h>
-
-GLfloat Ex = 0.0, Ey = 0.0, Ez = 2.0,
-Ax = 0.0, Ay = 0.0, Az = 0.0,
+// march 5, 1933 = 1971 = April 9, 2020
+GLfloat Ex = 0.0, Ey = 0.0, Ez = 0.0,
+Ax = 0.0, Ay = 0.0, Az = -2.0,
 Ux = 0.0, Uy = 1.0, Uz = 0.0;
+double ViewAngleX = 0;
+double ViewAngleY = 0;
+double ViewAngleZ = 0;
 
 static GLint width, height;
 static GLfloat LR = -3.0;
@@ -38,6 +48,13 @@ void other_init()
 
 void change_view()
 {
+	GLfloat radians=0;
+	
+	radians =(GLfloat) ( ViewAngleX * (GLfloat)(M_PI / 180));
+
+	Az = (-2.0) * cos(radians);
+	Ay = (-2.0) * sin(radians);
+
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 	gluLookAt(Ex, Ey, Ez, Ax, Ay, Az, Ux, Uy, Uz);
@@ -62,12 +79,12 @@ void keyboard(unsigned char key, int x, int y)
 {
 	switch (key)
 	{
-	case 'X': Ex += 1;	break;
-	case 'Y': Ey += 1;	break;
-	case 'Z': Ez += 1;	break;
-	case 'x': Ex -= 1;	break;
-	case 'y': Ey -= 1;	break;
-	case 'z': Ez -= 1;	break;
+	case 'X': ViewAngleX += 5;  break;
+	case 'Y': ViewAngleY += 5;  break;
+	case 'Z': ViewAngleZ += 5;  break;
+	case 'x': ViewAngleX -= 5;	break;
+	case 'y': ViewAngleY -= 5;	break;
+	case 'z': ViewAngleZ -= 5;	break;
 	case '2':
 		light_position[1] -= 1;
 		light_directional[1] -= 1;
