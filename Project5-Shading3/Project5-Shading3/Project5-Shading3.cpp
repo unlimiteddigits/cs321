@@ -12,9 +12,15 @@
 #include <stdlib.h>
 #include <time.h>
 #include <stdio.h>
-// march 5, 1933 = 1971 = April 9, 2020
-GLfloat Ex = 0.0, Ey = 0.0, Ez = 0.0,
-Ax = 0.0, Ay = 0.0, Az = -2.0,
+#include <iostream>
+#include <cstring>
+#include <sstream>
+//using namespace std;
+
+	// march 5, 1933 = 1971 = April 9, 2020
+
+GLfloat Ex = 0.0, Ey = 0.0, Ez = 2.0,
+Ax = 0.0, Ay = 0.0, Az = 0.0,
 Ux = 0.0, Uy = 1.0, Uz = 0.0;
 double ViewAngleX = 0;
 double ViewAngleY = 0;
@@ -34,6 +40,8 @@ GLfloat r_diffuse_light[] = { 1.0, 0.0, 0.0, 1.0 };
 GLfloat g_diffuse_light[] = { 0.0, 1.0, 0.0, 1.0 };
 GLfloat b_diffuse_light[] = { 0.0, 0.0, 1.0, 1.0 };
 
+std::string tempString;
+
 void other_init()
 {
 	glClearColor(0.0, 0.0, 0.0, 0.0);
@@ -52,26 +60,79 @@ void change_view()
 	
 	radians =(GLfloat) ( ViewAngleX * (GLfloat)(M_PI / 180));
 
-	Az = (-2.0) * cos(radians);
-	Ay = (-2.0) * sin(radians);
+	Ez = (2.0) * cos(radians);
+	Ey = (2.0) * sin(radians);
+	if (Ez < 0) 
+		Uy = -1.0;
+	if (Ez >= 0) 
+		Uy = 1.0;
 
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 	gluLookAt(Ex, Ey, Ez, Ax, Ay, Az, Ux, Uy, Uz);
-	printf("Ex=%f0", Ex);
+}
+
+void drawString(float x, float y, float z, char* mystring) {
+	glRasterPos3f(x, y, z);
+
+	for (char* c = mystring; *c != '\0'; c++) {
+		glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, *c);  // Updates the position
+	}
+}
+
+void DrawAxisLines()
+{
+	char X_Label[] = "X-Axis";
+	char Y_Label[] = "Y-Axis";
+	char Z_Label[] = "Z-Axis";
+
+	//glEnable(GL_LINE_STIPPLE);
+	glBegin(GL_LINES);
+	glVertex3f(0.0f, 0.0f, 0.0f);
+	glVertex3f(1.0f, 0.0f, 0.0f);
+	glEnd();
+
+	//sprintf("", Axis_Label, "X-Axis");
+	drawString(1.5, .1, 0, X_Label);
+
+	//Axis_Label = "Y-Axis";
+	drawString(.1, 1.5, 0, Y_Label);
+
+	//Axis_Label = "Z-Axis";
+	drawString(.1, .100, 1.5, Z_Label);
+
+	glBegin(GL_LINES);
+	glVertex3f(0.0f, 0.0f, 0.0f);
+	glVertex3f(0.0f, 1.0f, 0.0f);
+	glEnd();
+	glBegin(GL_LINES);
+	glVertex3f(0.0f, 0.0f, 0.0f);
+	glVertex3f(0.0f, 0.0f, 1.0);
+	glEnd();
+	//glDisable(GL_LINE_STIPPLE);
 }
 
 void display(void)
 {
+	int resultVal = 0;
+	char sResult[200];
+
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glLoadIdentity();
 	glPushMatrix();
 	change_view();
+
+	sprintf_s(sResult," Press x/X:  Ex=%0.1f Ey=%0.1f Ez=%0.1f \nAx=%0.1f Ay=%0.1f Az=%0.1f \nUx=%0.1f Uy=%0.1f Uz=%0.1f", (float)Ex, (float)Ey, (float)Ez, (float)Ax, (float)Ay, (float)Az, (float)Ux, (float)Uy, (float)Uz);
+
+	DrawAxisLines();
 	glTranslatef(-1.2, 1.2, 0.0);
 	glutSolidTeapot(0.8);
 	glTranslatef(2.0, -2.0, 0.0);
 	glutSolidSphere(0.8, 20, 16);
 	glPopMatrix();
+	//Axis_Label = "Y-Axis";
+	drawString(-2.8, -2.5, 0, sResult);
+
 	glFlush();
 }
 
