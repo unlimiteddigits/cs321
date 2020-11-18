@@ -1,4 +1,4 @@
-/*	Shading Example #3
+/*	Shading Example #3 - Modified to move things around.
 	Example of using glut objects */
 
 #ifndef M_PI
@@ -13,11 +13,11 @@
 #include <time.h>
 #include <stdio.h>
 #include <iostream>
-#include <cstring>
-#include <sstream>
 //using namespace std;
 
-	// march 5, 1933 = 1971 = April 9, 2020
+// march 5, 1933 = 1971 = April 9, 2020
+
+const int cX = 0, cY = 1, cZ = 2;
 
 GLfloat Ex = 0.0, Ey = 0.0, Ez = 2.0,
 Ax = 0.0, Ay = 0.0, Az = 0.0,
@@ -25,6 +25,9 @@ Ux = 0.0, Uy = 1.0, Uz = 0.0;
 double ViewAngleX = 0;
 double ViewAngleY = 0;
 double ViewAngleZ = 0;
+double AtAngleX = 0;
+double AtAngleY = 0;
+double AtAngleZ = 0;
 
 static GLint width, height;
 static GLfloat LR = -3.0;
@@ -33,14 +36,12 @@ static GLfloat theta = 0;
 GLfloat ambient_light[] = { 0.6, 0.6, 0.6, 1.0 };
 GLfloat diffuse_light[] = { 0.6, 0.6, 0.6, 1.0 };
 
-GLfloat light_position[] = { -2.0, 1.0, 2.0, 1.0 };
+GLfloat light_position[] = { -2.0, -2.0, 2.0, 1.0 };
 GLfloat light_directional[] = { -2.0, 1.0, 2.0, 0.0 };
 
 GLfloat r_diffuse_light[] = { 1.0, 0.0, 0.0, 1.0 };
 GLfloat g_diffuse_light[] = { 0.0, 1.0, 0.0, 1.0 };
 GLfloat b_diffuse_light[] = { 0.0, 0.0, 1.0, 1.0 };
-
-std::string tempString;
 
 void other_init()
 {
@@ -56,17 +57,6 @@ void other_init()
 
 void change_view()
 {
-	GLfloat radians=0;
-	
-	radians =(GLfloat) ( ViewAngleX * (GLfloat)(M_PI / 180));
-
-	Ez = (2.0) * cos(radians);
-	Ey = (2.0) * sin(radians);
-	if (Ez < 0) 
-		Uy = -1.0;
-	if (Ez >= 0) 
-		Uy = 1.0;
-
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 	gluLookAt(Ex, Ey, Ez, Ax, Ay, Az, Ux, Uy, Uz);
@@ -114,7 +104,6 @@ void DrawAxisLines()
 
 void display(void)
 {
-	int resultVal = 0;
 	char sResult[200];
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -122,58 +111,107 @@ void display(void)
 	glPushMatrix();
 	change_view();
 
-	sprintf_s(sResult," Press x/X:  Ex=%0.1f Ey=%0.1f Ez=%0.1f \nAx=%0.1f Ay=%0.1f Az=%0.1f \nUx=%0.1f Uy=%0.1f Uz=%0.1f", (float)Ex, (float)Ey, (float)Ez, (float)Ax, (float)Ay, (float)Az, (float)Ux, (float)Uy, (float)Uz);
-
 	DrawAxisLines();
 	glTranslatef(-1.2, 1.2, 0.0);
 	glutSolidTeapot(0.8);
 	glTranslatef(2.0, -2.0, 0.0);
 	glutSolidSphere(0.8, 20, 16);
+	glLightfv(GL_LIGHT0, GL_POSITION, light_position);
 	glPopMatrix();
-	//Axis_Label = "Y-Axis";
+	//Status info
+	sprintf_s(sResult, " Press x/X:  Ex=%0.1f Ey=%0.1f Ez=%0.1f \nAx=%0.1f Ay=%0.1f Az=%0.1f \nUx=%0.1f Uy=%0.1f Uz=%0.1f", (float)Ex, (float)Ey, (float)Ez, (float)Ax, (float)Ay, (float)Az, (float)Ux, (float)Uy, (float)Uz);
 	drawString(-2.8, -2.5, 0, sResult);
+	sprintf_s(sResult, " Light Position:  X=%0.1f Y=%0.1f Z=%0.1f (Numeric Keypad 2-8)  Plus u,v,w,r,g,b,d,f,p,i" , (float)light_position[cX], (float)light_position[cY], (float)light_position[cZ]);
+	drawString(-2.8, -2.65, 0, sResult);
 
 	glFlush();
 }
 
 void keyboard(unsigned char key, int x, int y)
 {
+	GLfloat radians = 0;
+
 	switch (key)
 	{
-	case 'X': ViewAngleX += 5;  break;
-	case 'Y': ViewAngleY += 5;  break;
-	case 'Z': ViewAngleZ += 5;  break;
-	case 'x': ViewAngleX -= 5;	break;
-	case 'y': ViewAngleY -= 5;	break;
-	case 'z': ViewAngleZ -= 5;	break;
+	case 'X': ViewAngleX += 5; 	
+		radians = (GLfloat)(ViewAngleX * (GLfloat)(M_PI / 180));
+		Ez = (2.0) * cos(radians);
+		Ey = (2.0) * sin(radians);
+		if (Ez < 0)
+			Uy = -1.0;
+		if (Ez >= 0)
+			Uy = 1.0;
+		break;
+	case 'Y': ViewAngleY += 5;  
+		radians = (GLfloat)(ViewAngleY * (GLfloat)(M_PI / 180));
+		Ez = (2.0) * cos(radians);
+		Ex = (2.0) * sin(radians);
+		Uy = 1.0;
+		break;
+	case 'Z': ViewAngleZ += 5;  		
+		radians = (GLfloat)(ViewAngleZ * (GLfloat)(M_PI / 180));
+		Ex = (2.0) * sin(radians);
+		Ey = (2.0) * cos(radians);
+		break;
+	case 'x': ViewAngleX -= 5;	
+		radians = (GLfloat)(ViewAngleX * (GLfloat)(M_PI / 180));
+		Ez = (2.0) * cos(radians);
+		Ey = (2.0) * sin(radians);
+		if (Ez < 0)
+			Uy = -1.0;
+		if (Ez >= 0)
+			Uy = 1.0;
+		break;
+	case 'y': ViewAngleY -= 5;	
+		radians = (GLfloat)(ViewAngleY * (GLfloat)(M_PI / 180));
+		Ez = (2.0) * cos(radians);
+		Ex = (2.0) * sin(radians);
+		Uy = 1.0;
+		break;
+	case 'z': ViewAngleZ -= 5;	
+		radians = (GLfloat)(ViewAngleZ * (GLfloat)(M_PI / 180));
+		Ex = (2.0) * sin(radians);
+		Ey = (2.0) * cos(radians);
+		break;
+	case 'V': Ay += 5;  break;
+	case 'v': Ay -= 5;	break;
+	case 'U': Ax += 5;  break;
+	case 'u': Ax -= 5;	break;
+	case 'W': Az += 5;  break;
+	case 'w': Az -= 5;	break;
+	case 'i':case 'I': 
+		Ex = 0; Ey = 0; Ez = 2.0, Ax = 0; Ay = 0; Az = 0, Ux = 0; Uy = 1; Uz = 0;
+		ViewAngleX = 0, ViewAngleY = 0, ViewAngleZ = 0;
+		light_position[cX] = -2.0, light_position[cY] = -2.0, light_position[cZ] = 0;
+		break;
 	case '2':
-		light_position[1] -= 1;
-		light_directional[1] -= 1;
+		light_position[cY] -= 1;
+		light_directional[cY] -= 1;
 		glLightfv(GL_LIGHT0, GL_POSITION, light_position);
 		break;
 	case '8':
-		light_position[1] += 1;
-		light_directional[1] += 1;
+		light_position[cY] += 1;
+		light_directional[cY] += 1;
 		glLightfv(GL_LIGHT0, GL_POSITION, light_position);
 		break;
 	case '4':
-		light_position[0] -= 1;
-		light_directional[0] -= 1;
+		light_position[cX] -= 1;
+		light_directional[cX] -= 1;
 		glLightfv(GL_LIGHT0, GL_POSITION, light_directional);
 		break;
 	case '6':
-		light_position[0] += 1;
-		light_directional[0] += 1;
+		light_position[cX] += 1;
+		light_directional[cX] += 1;
 		glLightfv(GL_LIGHT0, GL_POSITION, light_directional);
 		break;
 	case '7':
-		light_position[2] -= 1;
-		light_directional[2] -= 1;
+		light_position[cZ] -= 1;
+		light_directional[cZ] -= 1;
 		glLightfv(GL_LIGHT0, GL_POSITION, light_position);
 		break;
 	case '3':
-		light_position[2] += 1;
-		light_directional[2] += 1;
+		light_position[cZ] += 1;
+		light_directional[cZ] += 1;
 		glLightfv(GL_LIGHT0, GL_POSITION, light_position);
 		break;
 	case 'F': 	case 'f':
@@ -195,6 +233,8 @@ void keyboard(unsigned char key, int x, int y)
 			glLightfv(GL_LIGHT0, GL_POSITION, light_position);	break;
 		case 'Q':	case 'q': exit(1);
 	}
+
+
 	glutPostRedisplay();
 }
 
@@ -205,7 +245,7 @@ void reshape(int w, int h)
 	glLoadIdentity();
 	if (w <= h)
 		glOrtho(LR, -LR, LR * (GLfloat)h / (GLfloat)w,
-			-LR * (GLfloat)h / (GLfloat)w, LR, -LR);
+			-LR * (GLfloat)h / (GLfloat)w, LR, -LR*2);
 	else
 		glOrtho(LR * (GLfloat)w / (GLfloat)h,
 			-LR * (GLfloat)w / (GLfloat)h, LR, -LR, LR, -LR);
@@ -221,12 +261,9 @@ void init_window(int argc, char** argv)
 	width = height = 500;
 	glutInitWindowSize(width, height);
 	glutInitWindowPosition(50, 50);
-	glutCreateWindow("Shading Example 3");
+	glutCreateWindow("Move Light and Eye of Cam-Select RGB");
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	// glFrustum(-1.0, 1.0, -1.0, 1.0, 1.0, 3.0);
-	//gluPerspective(45.0, 2.0, 2.0, 3.0);
-
 }
 
 void main(int argc, char** argv)
