@@ -14,8 +14,8 @@ https://github.com/unlimiteddigits/cs321
 
 #ifndef EXAMPLE_H
 #define EXAMPLE_H
-#define VIEWSTARTW 300
-#define VIEWSTARTH 200
+#define VIEWSTARTW 600
+#define VIEWSTARTH 400
 
 void init_Window_Attrubutes(int argc, char** argv);
 void display(void);

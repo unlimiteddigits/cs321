@@ -79,15 +79,15 @@ void init_Window_Attrubutes(int argc, char** argv) {
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE);
 	glutInitWindowSize((int)windowWidth, (int)windowHeight);
-	//x = (Screen Width - Window Width) / 2, y = (Screen Height - Window Height) / 2
+	//x = (Screen Width - Window Width) , y = (Screen Height - Window Height) 
 	glutInitWindowPosition((int) (glutGet(GLUT_SCREEN_WIDTH) - windowWidth) / 2, (int) (glutGet(GLUT_SCREEN_HEIGHT) - windowHeight) / 2);  // auto version -> 
-	glutCreateWindow("Project 4");
+	glutCreateWindow("Project 5");
 }
 
 
 void other_init()
 {
-	glClearColor(0.2f, 0.25f, 0.3f, 1.0f);		/* Set background color black */
+	//glClearColor(0.2f, 0.25f, 0.3f, 1.0f);		/* Set background color black */
 	glClearColor(0.9f, 0.925f, 0.93f, 1.0f);	/* Re-Set background color  white*/
 	glMatrixMode(GL_PROJECTION);		/* Modify Projection Matrix */
 	glLoadIdentity();					/* Set to identity matrix */
@@ -639,15 +639,9 @@ void FreeMem() {
 	free(arrayPtr);
 }
 
-//  -------------------------Everything below here is from project 1-------------------------
-//  ---- Except the 4th dimension of the array used to flag where the "J" was in the file----
-//  ---- And the menu system which could have been in project 1
-//  Search for "jumpFlag" in the ReadDataBySpace function to how the 4th dim was used.
-//  This 4th dim is a key component in the "display" Callback.
 
-//from Project1
 // Prompt the file name
-// Enter the file name: img1.dat
+// Enter the file name: img1.obj
 void PromptFileName()	{
 	int flag = 1;
 	char tempstr[256];
@@ -656,11 +650,12 @@ void PromptFileName()	{
 	while(flag)   {
 		system("CLS");
 		printf("\nProject 3 - Main menu.\n\n");
-		printf("\tEnter 1 to load the file named img1.dat\n");
-		printf("\tEnter 2 to load the file named img2.dat\n");
-		printf("\tEnter 3 to load the file named img3.dat\n");
-		printf("\tEnter 4 to load the file named img4.dat\n");
-		printf("\tEnter 5 to manually type the name of a file.\n\n");
+		printf("\tEnter 1 to load the file named alfaRomeo147.obj\n");
+		printf("\tEnter 2 to load the file named cube.obj\n");
+		printf("\tEnter 3 to load the file named gangster.obj\n");
+		printf("\tEnter 4 to load the file named lamp.obj\n");
+		printf("\tEnter 5 to load the file named teapot.obj\n");
+		printf("\tEnter 6 to manually type the name of a file.\n\n");
 
 		scanf_s("%s", &tempstr, 256);
 		iChoice = atoi(tempstr);
@@ -668,16 +663,19 @@ void PromptFileName()	{
 		switch (iChoice)
 		{
 		case 1:
-			input_file_name = "img1.dat";
+			input_file_name = "alfaRomeo147.obj";
 			break;
 		case 2:
-			input_file_name = "img2.dat";
+			input_file_name = "cube.obj";
 			break;
 		case 3:
-			input_file_name = "img3.dat";
+			input_file_name = "gangster.obj";
 			break;
 		case 4:
-			input_file_name = "img4.dat";
+			input_file_name = "lamp.obj";
+			break;
+		case 5:
+			input_file_name = "teapot.obj";
 			break;
 		default:
 			printf("Enter file name : ");
@@ -740,7 +738,8 @@ void ReadDataBySpace() {
 	std::string line;
 	std::string temp_line;
 	std::string first_char_of_line;
-	char single_char_in_line;
+	char first_char_in_line;
+	char second_char_in_line;
 	char tempstr[256] = " ";
 	int i = 0;
 	unsigned int j = 0;
@@ -774,9 +773,15 @@ void ReadDataBySpace() {
 
 		// loop to look for something other than numbers (and spaces).
 		for (j = 0; j < line.length(); j++) {
-			single_char_in_line=(line.substr(j,1).c_str()[0]);
-			//for debugging try --> printf("j=%d is -->%c<-- this.\n", j, single_char_in_line);
-			if (isdigit(single_char_in_line) || single_char_in_line == '-' || single_char_in_line == ' ') {
+
+			first_char_in_line = (line.substr(j, 1).c_str()[0]);
+			second_char_in_line = (line.substr(j+1, 1).c_str()[0]);
+			if (second_char_in_line != '.')	{
+				//for debugging try --> 
+				printf("j=%d is -->%c%c<-- this.\n", j, first_char_in_line, second_char_in_line);
+			}
+			
+			if (isdigit(first_char_in_line) || first_char_in_line == '-' || first_char_in_line == ' ') {
 				//This "line" (from from file) is still ok 
 			} else { 
 				//  printf("We need to truncate the string at %d........", j);
@@ -788,7 +793,7 @@ void ReadDataBySpace() {
 		}
 
 		first_char_of_line = line.substr(0, 1);
-		if (single_char_in_line=='J' || single_char_in_line == 'j') {
+		if (first_char_in_line=='J' || first_char_in_line == 'j') {
 			jumpFlag = 1;
 		}
 		if (first_char_of_line.compare("") == 0) {
