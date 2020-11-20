@@ -20,12 +20,34 @@ https://github.com/unlimiteddigits/cs321
 std::ifstream fp;              // file pointer for input 
 std::ofstream fpOut;           // file pointer for output 
 
-std::string input_file_name;   // user to provide the name of the input file
-std::string output_file_name; // system will calculate the output file
-float* arrayPtr;              // name of the array storing the vertices
-int arraySize=0;              // total size of the arrary
-int arrayRowCount = 0;        // number of vertices (array's rows)
-int arrayColCount = 4;        // number of coordinates on each line
+std::string input_file_name;    // user to provide the name of the input file
+std::string output_file_name;   // system will calculate the output file
+float* arrayPtr_v;              // name of the array storing the vertices
+float* arrayPtr_vn;             // name of the array storing the normals
+float* arrayPtr_f;              // name of the array storing the faces
+char* arrayPtr_usemtl;         // name of the array storing the usemtl
+float* arrayPtr_smoothShading;  // name of the array storing the Smooth shading
+float* arrayPtr_se;              // name of the array storing the faces
+float* arrayPtr_ka;              // name of the array storing the ambient reflection coefficient
+float* arrayPtr_kd;              // name of the array storing the diffuse reflection coefficient
+float* arrayPtr_ks;              // name of the array storing the specular reflection coefficient
+float* arrayPtr_ke;              // name of the array storing the material reflection coefficient
+char* arrayPtr_o;              // name of the array storing the object name
+char* arrayPtr_g;              // name of the array storing the group names
+int array_f_ColCount=6; // 4 bytes for each int, 8 for float
+int array_o_ColCount=3;
+int array_g_ColCount=3;
+int array_usemtl_ColCount=1;
+int arrayColCount = 4;   // to be removed before turning in
+int array_v_ColCount = 4;
+int array_ss_ColCount=1;
+int array_ka_ColCount=3;
+int array_kd_ColCount=3;
+int array_ks_ColCount=3;
+int array_ke_ColCount=3;
+int array_se_ColCount=3;
+int totalLineCount = 0;
+
 int iDirection = 1;           // Control of the timer / "direction of the wind"
 int iContinue = 1;            //  stop the rotation after the user presses a key 
 float xScale = 1.0, yScale = 1.0;  // Attempts to scale the image.
@@ -53,6 +75,12 @@ GLfloat Distortion = 1.0;        // Starting point and reset value of distortion
 GLfloat xDistortion = Distortion; // Starting point of distortion on the x axis
 GLfloat yDistortion = Distortion; // Starting point of distortion on the y axis
 GLfloat xSkewMultiplier, ySkewMultiplier;  // variables for a random number to create the flicket in the wind effect
+
+int count_of_comments = 0, count_of_object_names = 0, count_of_group_names = 0;
+int count_of_vertices = 0, count_of_normals = 0, count_of_smoothshade = 0;
+int count_of_faces = 0, count_of_usemtl = 0, count_of_mtllib = 0, count_of_se = 0;
+int count_of_ka = 0, count_of_kd = 0, count_of_ks = 0, count_of_ke = 0;
+int count_of_numbers_on_line = 0;
 
 float average_X=0, average_Y=0, average_Z=0;
 float max_X=0, max_Y=0, max_Z=0;
@@ -210,20 +238,20 @@ void drawImgData() {
 	char X_Label[] = "X-Axis";
 	char Y_Label[] = "Y-Axis";
 	char Z_Label[] = "Z-Axis";
-	vertex4 myVertMatrix;
+	vertex4 myVertMatrix = { 0,0,0,0 };
 	vertex4 myResultMatrix = { 0,0,0,0 };
 	GLfloat test1 = 0, test2 = 0;
 
 	glBegin(GL_LINES);
-	for (i = 0; i < arrayRowCount; i = i + 1) {
-		fX = (GLfloat) * (arrayPtr + i * arrayColCount);
-		fY = (GLfloat) * (arrayPtr + i * arrayColCount + 1);
-		fZ = *(arrayPtr + i * arrayColCount + 2);
-		myVertMatrix[0] = (GLfloat) * (arrayPtr + i * arrayColCount);
-		myVertMatrix[1] = (GLfloat) * (arrayPtr + i * arrayColCount + 1);
-		myVertMatrix[2] = *(arrayPtr + i * arrayColCount + 2);
+	for (i = 0; i < array_v_ColCount; i = i + 1) {
+		fX = (GLfloat) * (arrayPtr_v + i * array_v_ColCount);
+		fY = (GLfloat) * (arrayPtr_v + i * array_v_ColCount + 1);
+		fZ = *(arrayPtr_v + i * array_v_ColCount + 2);
+		myVertMatrix[0] = (GLfloat) * (arrayPtr_v + i * array_v_ColCount);
+		myVertMatrix[1] = (GLfloat) * (arrayPtr_v + i * array_v_ColCount + 1);
+		myVertMatrix[2] = *(arrayPtr_v + i * array_v_ColCount + 2);
 		myVertMatrix[3] = 1;
-		fJump = (int)*(arrayPtr + i * arrayColCount + 3);   // 4th dimension of the array used to flag where the "J" was in the file
+		fJump = (int)*(arrayPtr_v + i * array_v_ColCount + 3);   // 4th dimension of the array used to flag where the "J" was in the file
 
 		//myVert = myTransformMatrix * myVert;
 		// Multiplying matrix a and b and storing in array mult.
@@ -629,14 +657,13 @@ void timer(int n) {
 }
 
 void FreeMem() {
-	arraySize = 0;       // Clear globals incase the user wants to run in a loop.
-	arrayRowCount = 0;   //  basic clean up...
+	totalLineCount = 0;   //  basic clean up...
 	arrayColCount = 4;
 	iDirection = 1;
 	iContinue = 1;
 	xDistortion = Distortion;   // Restore the max distortion value for the next loop
 	yDistortion = Distortion;
-	free(arrayPtr);
+	free(arrayPtr_v);
 }
 
 
@@ -704,31 +731,58 @@ void closeFile() {
 // Read information about the number of data in an input file
 // Allocate a dynamic memory that will hold input data
 void CreateArray()	{
-   std::string line;
-   int JCount = 0;
-   char tempstr[256]=" ";
-
+	/*	Reference info for global variables
+	int count_of_comments = 0, count_of_object_names = 0, count_of_group_names = 0;
+	int count_of_vertices = 0, count_of_normals = 0, count_of_smoothshade = 0;
+	int count_of_faces = 0, count_of_usemtl = 0, count_of_se = 0;
+	int count_of_ka = 0, count_of_kd = 0, count_of_ks = 0, count_of_ke = 0;
+	int count_of_numbers_on_line = 0;
+	*/
+	std::string line;
+	char tempstr[256] = " ";
+	int line_length = 0;
+	totalLineCount = 0;
    while ( !fp.eof() ) {
 	   fp.getline(tempstr,256);
 	   line = tempstr;
+	   totalLineCount += 1;
+	   line_length = line.length();
+
+	   // loop to look for something other than numbers (and spaces).
+
 	   if (line.compare("") == 0) {
 		   //printf("Found an empty line.\n");
-	   }else if (line.substr(0,1)=="J" || line.substr(0, 1) == "j") {
-		JCount++;
 	   }
-	   else {
-		   if (line.substr(0, 1) == "j") {
-			   JCount++;
-		   }
-		   else {
-			   arrayRowCount++;
-		   }
-	   }
+	   else if (line.substr(0, 1) == "o") { count_of_object_names += 1;}
+	   else if (line.substr(0, 1) == "g") { count_of_group_names += 1;}
+	   else if (line.substr(0, 1) == "v") { count_of_vertices += 1;}
+	   else if (line.substr(0, 1) == "f") { count_of_faces += 1;}
+	   else if (line.substr(0, 1) == "#") { count_of_comments += 1;}
+	   else if (line.substr(0, 1) == "s") { count_of_smoothshade += 1;}
+	   else if (line.substr(0, 2) == "vn") {count_of_normals += 1;}
+	   else if (line.substr(0, 2) == "ka") {count_of_ka += 1;}
+	   else if (line.substr(0, 2) == "kd") {count_of_kd += 1;}
+	   else if (line.substr(0, 2) == "ks") {count_of_ks += 1;}
+	   else if (line.substr(0, 2) == "ke") {count_of_ke += 1;}
+	   else if (line.substr(0, 2) == "se") { count_of_se += 1; }
+	   else if (line.substr(0, 6) == "usemtl") { count_of_usemtl += 1; }
+	   else if (line.substr(0, 6) == "mtllib") { count_of_mtllib += 1; }
+	   else { printf("Unknown line found in file.  Line#%d", totalLineCount); }
    }
-   arraySize = (arrayRowCount) * (arrayColCount);
-   arrayPtr = (float *) malloc(arraySize*8); // 4 bytes for each int, 8 for float
-   printf("\nPlease stand by, there are %d lines to process in the input file.\n", arrayRowCount + JCount);
-   printf("\n%d lines contain coordinate info.\n", arrayRowCount );
+   arrayPtr_f = (float*)malloc(count_of_faces * array_f_ColCount * 8); // 4 bytes for each int, 8 for float
+   arrayPtr_o = (char*)malloc(count_of_object_names * array_o_ColCount * 8);
+   arrayPtr_g = (char*)malloc(count_of_group_names * array_g_ColCount * 8);
+   arrayPtr_usemtl = (char*)malloc(count_of_usemtl * array_usemtl_ColCount * 8);
+   arrayPtr_v = (float*)malloc(count_of_vertices * array_v_ColCount * 8);
+   arrayPtr_smoothShading = (float*)malloc(count_of_smoothshade * array_ss_ColCount * 8);
+   arrayPtr_ka = (float*)malloc(count_of_ka * array_ka_ColCount * 8);
+   arrayPtr_kd = (float*)malloc(count_of_kd * array_kd_ColCount * 8);
+   arrayPtr_ks = (float*)malloc(count_of_ks * array_ks_ColCount * 8);
+   arrayPtr_ke = (float*)malloc(count_of_ke * array_ke_ColCount * 8);
+   arrayPtr_se = (float*)malloc(count_of_se * array_se_ColCount * 8);
+
+   printf("\nPlease stand by, there are %d lines to process in the input file.\n", totalLineCount);
+   printf("\n%d lines contain coordinate info.\n", totalLineCount);
 }
 
 
@@ -738,22 +792,28 @@ void ReadDataBySpace() {
 	std::string line;
 	std::string temp_line;
 	std::string first_char_of_line;
-	char first_char_in_line;
-	char second_char_in_line;
+	char first_char_on_line;
+	char second_char_on_line;
+	char third_char_on_line;
+	char char_in_view;
 	char tempstr[256] = " ";
-	int i = 0;
-	unsigned int j = 0;
+	int line_length = 0;
+	int i = 0, j = 0;
+	int from_index = 0, to_index = 0;
 	int jumpFlag = 0;
 	float sum_X = 0, sum_Y = 0, sum_Z = 0;
 	GLfloat temp_X = 0, temp_Y = 0, temp_Z = 0;
+
+
 	int ave_count = 0;
+	float myNormalizer = 0;
+
 	min_X = 0;
 	max_X = 0;
 	min_Y = 0;
 	max_Y = 0;
 	min_Z = 0;
 	max_Z = 0;
-	double myNormalizer = 0;
 
 	fp.seekg(fp.beg);  // rewind the file or fp.seekg(0);
 
@@ -770,19 +830,35 @@ void ReadDataBySpace() {
 			printf("Something wrong with %s", input_file_name.c_str());
 		}
 		line = tempstr;
+		line_length = line.length();
 
+		first_char_on_line = '\0';
+		second_char_on_line = '\0';
+		third_char_on_line = '\0';
+		from_index = 0;
+		to_index = 0;
 		// loop to look for something other than numbers (and spaces).
-		for (j = 0; j < line.length(); j++) {
+		for (j = 0; j < line_length; j++) {
+			char_in_view = (line.substr(j, 1).c_str()[0]);
+			if (j < 1) {
+				if (line_length > 0) {
+					first_char_on_line = (line.substr(j, 1).c_str()[0]);
+				}
+				if (line_length > 1) {
+					second_char_on_line = (line.substr(j + 1, 1).c_str()[0]);
+				}
+				if (line_length > 2) {
+					third_char_on_line = (line.substr(j + 2, 1).c_str()[0]);
+				}
+				if (second_char_on_line != ' ') {
+					//for debugging try --> 
+					printf("j=%d is -->%c%c%c<-- this.\n", j, first_char_on_line, second_char_on_line, third_char_on_line);
+				}
+			}    // end of if J=0
 
-			first_char_in_line = (line.substr(j, 1).c_str()[0]);
-			second_char_in_line = (line.substr(j+1, 1).c_str()[0]);
-			if (second_char_in_line != '.')	{
-				//for debugging try --> 
-				printf("j=%d is -->%c%c<-- this.\n", j, first_char_in_line, second_char_in_line);
-			}
-			
-			if (isdigit(first_char_in_line) || first_char_in_line == '-' || first_char_in_line == ' ') {
-				//This "line" (from from file) is still ok 
+			if (isdigit(char_in_view) || char_in_view == '-' || from_index != 0) {
+				// a 
+				from_index = j;
 			} else { 
 				//  printf("We need to truncate the string at %d........", j);
 				temp_line = line.substr(0, j).c_str();
@@ -793,7 +869,7 @@ void ReadDataBySpace() {
 		}
 
 		first_char_of_line = line.substr(0, 1);
-		if (first_char_in_line=='J' || first_char_in_line == 'j') {
+		if (first_char_on_line=='J' || first_char_on_line == 'j') {
 			jumpFlag = 1;
 		}
 		if (first_char_of_line.compare("") == 0) {
@@ -801,21 +877,24 @@ void ReadDataBySpace() {
 		}
 		else {
 			if (jumpFlag == 1 || i==0) {
-				*(arrayPtr + i * arrayColCount + 3) = 1;
+				*(arrayPtr_v + i * arrayColCount + 3) = 1;
 				jumpFlag = 0;
 				if (i > 0) {
-					*(arrayPtr + (i-1) * arrayColCount + 3) = 2;
+					*(arrayPtr_v + (i-1) * arrayColCount + 3) = 2;
 				}
 			}
 			else {
-				*(arrayPtr + i * arrayColCount + 3) = 0;
+				*(arrayPtr_v + i * arrayColCount + 3) = 0;
 			}
-			// arrayPtr[i] and *(arrayPtr+i) can be used interchangeably 
+			// arrayPtr[i] and *(arrayPtr_v+i) can be used interchangeably 
 
 			sscanf_s(line.c_str(), "%f %f %f", &temp_X, &temp_Y, &temp_Z);
-			arrayPtr[i * arrayColCount] = temp_X ;
-			arrayPtr[i * arrayColCount + 1]=temp_Y ;
-			arrayPtr[i * arrayColCount + 2]= temp_Z;
+			//arrayPtr_v[i * arrayColCount] = temp_X ;
+			PutArrayVal(arrayPtr_v, i, 0, temp_X);
+			PutArrayVal(arrayPtr_v, i, 1, temp_Y);
+			PutArrayVal(arrayPtr_v, i, 2, temp_Z);
+			//arrayPtr_v[i * arrayColCount + 1]=temp_Y ;
+			//arrayPtr_v[i * arrayColCount + 2]= temp_Z;
 
 			if (temp_X > max_X) max_X = temp_X;
 			if (temp_Y > max_Y) max_Y = temp_Y;
@@ -839,7 +918,7 @@ void ReadDataBySpace() {
 
 
 	//printf("Loop ends.\n");
-	*(arrayPtr + (arrayRowCount-1) * arrayColCount + 3) = 2;
+	//*(arrayPtr_v + (totalLineCount -1) * arrayColCount + 3) = 2;
 	average_X = sum_X / ave_count;
 	average_Y = sum_Y / ave_count;
 	average_Z = sum_Z / ave_count;
@@ -861,9 +940,9 @@ void ReadDataBySpace() {
 	j = i;
 	for (i = 0; i < j; i++) {
 		//printf("before i=%d array=X%.1f Y%.1f Z%.1f\n", i, *(arrayPtr + i * arrayColCount), *(arrayPtr + i * arrayColCount + 1), *(arrayPtr + i * arrayColCount + 2));
-		arrayPtr[i * arrayColCount] = arrayPtr[i * arrayColCount] / myNormalizer;
-		arrayPtr[i * arrayColCount + 1] = arrayPtr[i * arrayColCount + 1] / myNormalizer;
-		arrayPtr[i * arrayColCount + 2] = arrayPtr[i * arrayColCount + 2] / myNormalizer;
+		arrayPtr_v[i * arrayColCount] = arrayPtr_v[i * arrayColCount] / myNormalizer;
+		arrayPtr_v[i * arrayColCount + 1] = arrayPtr_v[i * arrayColCount + 1] / myNormalizer;
+		arrayPtr_v[i * arrayColCount + 2] = arrayPtr_v[i * arrayColCount + 2] / myNormalizer;
 		//printf("after i=%d array=X%.4f Y%.4f Z%.4f\n", i, *(arrayPtr + i * arrayColCount), *(arrayPtr + i * arrayColCount + 1), *(arrayPtr + i * arrayColCount + 2));
 	}
 
@@ -873,3 +952,10 @@ void ReadDataBySpace() {
 	printf("Min_X=%f, Max_X=%f, Min_Y=%f, Max_Y=%f, Min_Z=%f, Max_Z=%f\n ", min_X, max_X, min_Y, max_Y, min_Z, max_Z );
 }
 
+void PutArrayVal(float* arrayPtr,int Column, int Row, GLfloat value){
+	arrayPtr[Row * arrayColCount +Column] = value;
+}
+
+float GetArrayVal(float* arrayPtr, int Column, int Row) {
+	return  * (arrayPtr + Row * arrayColCount + Column);
+}

@@ -19,7 +19,7 @@ https://github.com/unlimiteddigits/cs321
 // int main()
 int main(int argc, char** argv)
 {
-	char answer;
+	char answer='\0';
 
 	do {
 		PromptFileName();
