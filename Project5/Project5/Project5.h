@@ -41,4 +41,5 @@ void drawImgData();
 void drawBorder();
 void PutArrayVal(float* arrayPtr, int Column, int Row, GLfloat value);
 float GetArrayVal(float* arrayPtr, int Column, int Row);
+void draw_triangle(int v1, int v2, int v3, int color);
 #endif

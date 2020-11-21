@@ -48,6 +48,13 @@ int array_ke_ColCount=3;
 int array_se_ColCount=3;
 int totalLineCount = 0;
 
+GLfloat colors[] = { 0.9, 0.1, 0.1,			/*  back side - Red   */
+					0.935, 0.35, 0.935,		/* top side - purple  */
+					0.05, 0.95, 0.05,		/* Left Side - green  */
+					0.065, 0.065, 0.95,		/* Right Side - blue  */
+					.992, 1, 0,				/* Front Side - yellow*/
+					0.995, 0.995, 0.995 };  /* Bottom Side - White*/
+
 int iDirection = 1;           // Control of the timer / "direction of the wind"
 int iContinue = 1;            //  stop the rotation after the user presses a key 
 float xScale = 1.0, yScale = 1.0;  // Attempts to scale the image.
@@ -76,11 +83,17 @@ GLfloat xDistortion = Distortion; // Starting point of distortion on the x axis
 GLfloat yDistortion = Distortion; // Starting point of distortion on the y axis
 GLfloat xSkewMultiplier, ySkewMultiplier;  // variables for a random number to create the flicket in the wind effect
 
-int count_of_comments = 0, count_of_object_names = 0, count_of_group_names = 0;
-int count_of_vertices = 0, count_of_normals = 0, count_of_smoothshade = 0;
-int count_of_faces = 0, count_of_usemtl = 0, count_of_mtllib = 0, count_of_se = 0;
-int count_of_ka = 0, count_of_kd = 0, count_of_ks = 0, count_of_ke = 0;
-int count_of_numbers_on_line = 0;
+int Number_of_comments = 0, Number_of_object_names = 0, Number_of_group_names = 0;
+int Number_of_vertices = 0, Number_of_normals = 0, Number_of_smoothshade = 0;
+int Number_of_faces = 0, Number_of_usemtl = 0, Number_of_mtllib = 0, Number_of_se = 0;
+int Number_of_ka = 0, Number_of_kd = 0, Number_of_ks = 0, Number_of_ke = 0;
+int Number_of_numbers_on_line = 0;
+
+int Index_of_comments = 0, Index_of_object_names = 0, Index_of_group_names = 0;
+int Index_of_vertices = 0, Index_of_normals = 0, Index_of_smoothshade = 0;
+int Index_of_faces = 0, Index_of_usemtl = 0, Index_of_mtllib = 0, Index_of_se = 0;
+int Index_of_ka = 0, Index_of_kd = 0, Index_of_ks = 0, Index_of_ke = 0;
+int Index_of_numbers_on_line = 0;
 
 float average_X=0, average_Y=0, average_Z=0;
 float max_X=0, max_Y=0, max_Z=0;
@@ -732,11 +745,11 @@ void closeFile() {
 // Allocate a dynamic memory that will hold input data
 void CreateArray()	{
 	/*	Reference info for global variables
-	int count_of_comments = 0, count_of_object_names = 0, count_of_group_names = 0;
-	int count_of_vertices = 0, count_of_normals = 0, count_of_smoothshade = 0;
-	int count_of_faces = 0, count_of_usemtl = 0, count_of_se = 0;
-	int count_of_ka = 0, count_of_kd = 0, count_of_ks = 0, count_of_ke = 0;
-	int count_of_numbers_on_line = 0;
+	int Number_of_comments = 0, Number_of_object_names = 0, Number_of_group_names = 0;
+	int Number_of_vertices = 0, Number_of_normals = 0, Number_of_smoothshade = 0;
+	int Number_of_faces = 0, Number_of_usemtl = 0, Number_of_se = 0;
+	int Number_of_ka = 0, Number_of_kd = 0, Number_of_ks = 0, Number_of_ke = 0;
+	int Number_of_numbers_on_line = 0;
 	*/
 	std::string line;
 	char tempstr[256] = " ";
@@ -753,36 +766,36 @@ void CreateArray()	{
 	   if (line.compare("") == 0) {
 		   //printf("Found an empty line.\n");
 	   }
-	   else if (line.substr(0, 1) == "o") { count_of_object_names += 1;}
-	   else if (line.substr(0, 1) == "g") { count_of_group_names += 1;}
-	   else if (line.substr(0, 1) == "v") { count_of_vertices += 1;}
-	   else if (line.substr(0, 1) == "f") { count_of_faces += 1;}
-	   else if (line.substr(0, 1) == "#") { count_of_comments += 1;}
-	   else if (line.substr(0, 1) == "s") { count_of_smoothshade += 1;}
-	   else if (line.substr(0, 2) == "vn") {count_of_normals += 1;}
-	   else if (line.substr(0, 2) == "ka") {count_of_ka += 1;}
-	   else if (line.substr(0, 2) == "kd") {count_of_kd += 1;}
-	   else if (line.substr(0, 2) == "ks") {count_of_ks += 1;}
-	   else if (line.substr(0, 2) == "ke") {count_of_ke += 1;}
-	   else if (line.substr(0, 2) == "se") { count_of_se += 1; }
-	   else if (line.substr(0, 6) == "usemtl") { count_of_usemtl += 1; }
-	   else if (line.substr(0, 6) == "mtllib") { count_of_mtllib += 1; }
+	   else if (line.substr(0, 1) == "o") { Number_of_object_names += 1;}
+	   else if (line.substr(0, 1) == "g") { Number_of_group_names += 1;}
+	   else if (line.substr(0, 1) == "v") { Number_of_vertices += 1;}
+	   else if (line.substr(0, 1) == "f") { Number_of_faces += 1;}
+	   else if (line.substr(0, 1) == "#") { Number_of_comments += 1;}
+	   else if (line.substr(0, 1) == "s") { Number_of_smoothshade += 1;}
+	   else if (line.substr(0, 2) == "vn") {Number_of_normals += 1;}
+	   else if (line.substr(0, 2) == "ka") {Number_of_ka += 1;}
+	   else if (line.substr(0, 2) == "kd") {Number_of_kd += 1;}
+	   else if (line.substr(0, 2) == "ks") {Number_of_ks += 1;}
+	   else if (line.substr(0, 2) == "ke") {Number_of_ke += 1;}
+	   else if (line.substr(0, 2) == "se") { Number_of_se += 1; }
+	   else if (line.substr(0, 6) == "usemtl") { Number_of_usemtl += 1; }
+	   else if (line.substr(0, 6) == "mtllib") { Number_of_mtllib += 1; }
 	   else { printf("Unknown line found in file.  Line#%d", totalLineCount); }
    }
-   arrayPtr_f = (float*)malloc(count_of_faces * array_f_ColCount * 8); // 4 bytes for each int, 8 for float
-   arrayPtr_o = (char*)malloc(count_of_object_names * array_o_ColCount * 8);
-   arrayPtr_g = (char*)malloc(count_of_group_names * array_g_ColCount * 8);
-   arrayPtr_usemtl = (char*)malloc(count_of_usemtl * array_usemtl_ColCount * 8);
-   arrayPtr_v = (float*)malloc(count_of_vertices * array_v_ColCount * 8);
-   arrayPtr_smoothShading = (float*)malloc(count_of_smoothshade * array_ss_ColCount * 8);
-   arrayPtr_ka = (float*)malloc(count_of_ka * array_ka_ColCount * 8);
-   arrayPtr_kd = (float*)malloc(count_of_kd * array_kd_ColCount * 8);
-   arrayPtr_ks = (float*)malloc(count_of_ks * array_ks_ColCount * 8);
-   arrayPtr_ke = (float*)malloc(count_of_ke * array_ke_ColCount * 8);
-   arrayPtr_se = (float*)malloc(count_of_se * array_se_ColCount * 8);
+   arrayPtr_f = (float*)malloc(Number_of_faces * array_f_ColCount * 8); // 4 bytes for each int, 8 for float
+   arrayPtr_o = (char*)malloc(Number_of_object_names * array_o_ColCount * 8);
+   arrayPtr_g = (char*)malloc(Number_of_group_names * array_g_ColCount * 8);
+   arrayPtr_usemtl = (char*)malloc(Number_of_usemtl * array_usemtl_ColCount * 8);
+   arrayPtr_v = (float*)malloc(Number_of_vertices * array_v_ColCount * 8);
+   arrayPtr_smoothShading = (float*)malloc(Number_of_smoothshade * array_ss_ColCount * 8);
+   arrayPtr_ka = (float*)malloc(Number_of_ka * array_ka_ColCount * 8);
+   arrayPtr_kd = (float*)malloc(Number_of_kd * array_kd_ColCount * 8);
+   arrayPtr_ks = (float*)malloc(Number_of_ks * array_ks_ColCount * 8);
+   arrayPtr_ke = (float*)malloc(Number_of_ke * array_ke_ColCount * 8);
+   arrayPtr_se = (float*)malloc(Number_of_se * array_se_ColCount * 8);
 
    printf("\nPlease stand by, there are %d lines to process in the input file.\n", totalLineCount);
-   printf("\n%d lines contain coordinate info.\n", totalLineCount);
+   printf("\n%d lines contain coordinate info.\n", Number_of_vertices);
 }
 
 
@@ -792,6 +805,8 @@ void ReadDataBySpace() {
 	std::string line;
 	std::string temp_line;
 	std::string first_char_of_line;
+	std::string obj_code;
+
 	char first_char_on_line;
 	char second_char_on_line;
 	char third_char_on_line;
@@ -803,7 +818,10 @@ void ReadDataBySpace() {
 	int jumpFlag = 0;
 	float sum_X = 0, sum_Y = 0, sum_Z = 0;
 	GLfloat temp_X = 0, temp_Y = 0, temp_Z = 0;
+	const int delimiter_max = 20;
 
+	int delimiter[delimiter_max];
+	int delimiter_index = 0;
 
 	int ave_count = 0;
 	float myNormalizer = 0;
@@ -814,6 +832,19 @@ void ReadDataBySpace() {
 	max_Y = 0;
 	min_Z = 0;
 	max_Z = 0;
+	Index_of_group_names = -1; 
+	Index_of_vertices = -1; 
+	Index_of_faces = -1; 
+	Index_of_comments = -1; 
+	Index_of_smoothshade = -1; 
+	Index_of_normals = -1;
+	Index_of_ka = -1; 
+	Index_of_kd = -1; 
+	Index_of_ks = -1; 
+	Index_of_ke = -1; 
+	Index_of_se = -1; 
+	Index_of_usemtl = -1; 
+	Index_of_mtllib = -1; 
 
 	fp.seekg(fp.beg);  // rewind the file or fp.seekg(0);
 
@@ -837,10 +868,47 @@ void ReadDataBySpace() {
 		third_char_on_line = '\0';
 		from_index = 0;
 		to_index = 0;
+		for (delimiter_index = delimiter_max-1; delimiter_index>=0; delimiter_index -= 1) {
+			delimiter[delimiter_index] = -1;
+		}
 		// loop to look for something other than numbers (and spaces).
 		for (j = 0; j < line_length; j++) {
 			char_in_view = (line.substr(j, 1).c_str()[0]);
-			if (j < 1) {
+			if (char_in_view == ' ') {
+				delimiter_index += 1;
+				delimiter[delimiter_index] = j;
+			}
+		}
+
+		for (j = 0; j < delimiter_index; j++) {
+
+		}
+		obj_code = line.substr(delimiter[j], (delimiter[j+1]-delimiter[j])).c_str()[0]));
+		if (obj_code == "o") { 
+			Index_of_object_names += 1;
+			PutArrayVal(arrayPtr_o, Index_of_object_names, 0, line.substr(delimiter[1], (delimiter[2] - delimiter[1]).c_str()[0]); 
+		}
+		else if (obj_code == "g") { 
+			Index_of_group_names += 1; 
+			PutArrayVal(arrayPtr_g, Index_of_group_names, 0, line.substr(delimiter[1], (delimiter[2] - delimiter[1])).c_str()[0]);
+		}
+		else if (obj_code == "v") { Index_of_vertices += 1; }
+		else if (obj_code == "f") { Index_of_faces += 1; }
+		else if (obj_code == "#") { Index_of_comments += 1; }
+		else if (obj_code == "s") { Index_of_smoothshade += 1; }
+		else if (obj_code == "vn") { Index_of_normals += 1; }
+		else if (obj_code == "ka") { Index_of_ka += 1; }
+		else if (obj_code == "kd") { Index_of_kd += 1; }
+		else if (obj_code == "ks") { Index_of_ks += 1; }
+		else if (obj_code == "ke") { Index_of_ke += 1; }
+		else if (obj_code == "se") { Index_of_se += 1; }
+		else if (obj_code == "usemtl") { Index_of_usemtl += 1; }
+		else if (obj_code == "mtllib") { Index_of_mtllib += 1; }
+		else { printf("Unknown line found in file.  Line#%d", totalLineCount); }
+
+
+
+		if (j < 1) {
 				if (line_length > 0) {
 					first_char_on_line = (line.substr(j, 1).c_str()[0]);
 				}
@@ -859,14 +927,15 @@ void ReadDataBySpace() {
 			if (isdigit(char_in_view) || char_in_view == '-' || from_index != 0) {
 				// a 
 				from_index = j;
-			} else { 
+			} else if (from_index > to_index && char_in_view == ' ') {
+				to_index = j;
 				//  printf("We need to truncate the string at %d........", j);
 				temp_line = line.substr(0, j).c_str();
 				line = temp_line;
 				//printf("  shorter line=%s\n", line.c_str());
 				break;
 			}
-		}
+		
 
 		first_char_of_line = line.substr(0, 1);
 		if (first_char_on_line=='J' || first_char_on_line == 'j') {
@@ -958,4 +1027,21 @@ void PutArrayVal(float* arrayPtr,int Column, int Row, GLfloat value){
 
 float GetArrayVal(float* arrayPtr, int Column, int Row) {
 	return  * (arrayPtr + Row * arrayColCount + Column);
+}
+
+void draw_triangle(int v1, int v2, int v3, int color)
+{
+	glBegin(GL_POLYGON);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE,
+		colors + color * 3);
+
+	glNormal3fv(arrayPtr_vn + v1 * 3);
+	glVertex3fv(arrayPtr_v + v1 * 3);
+	glNormal3fv(arrayPtr_vn + v2 * 3);
+	glVertex3fv(arrayPtr_v + v2 * 3);
+	glNormal3fv(arrayPtr_vn + v3 * 3);
+	glVertex3fv(arrayPtr_v + v3 * 3);
+	//glNormal3fv(arrayPtr_vn + v4 * 3);
+	//glVertex3fv(arrayPtr_v + v4 * 3);
+	glEnd();
 }
