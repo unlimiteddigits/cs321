@@ -883,14 +883,14 @@ void ReadDataBySpace() {
 		for (j = 0; j < delimiter_index; j++) {
 
 		}
-		obj_code = line.substr(delimiter[j], (delimiter[j+1]-delimiter[j])).c_str()[0]));
+		obj_code = line.substr(delimiter[j], (delimiter[j+1]-delimiter[j]));
 		if (obj_code == "o") { 
 			Index_of_object_names += 1;
-			PutArrayVal(arrayPtr_o, Index_of_object_names, 0, line.substr(delimiter[1], (delimiter[2] - delimiter[1]).c_str()[0]); 
+			PutArrayVal(arrayPtr_o, Index_of_object_names, 0, line.substr(delimiter[1], (line_length - delimiter[1])));
 		}
 		else if (obj_code == "g") { 
 			Index_of_group_names += 1; 
-			PutArrayVal(arrayPtr_g, Index_of_group_names, 0, line.substr(delimiter[1], (delimiter[2] - delimiter[1])).c_str()[0]);
+			PutArrayVal(arrayPtr_g, Index_of_group_names, 0, line.substr(delimiter[1], (line_length - delimiter[1])).c_str()[0]);
 		}
 		else if (obj_code == "v") { Index_of_vertices += 1; }
 		else if (obj_code == "f") { Index_of_faces += 1; }
