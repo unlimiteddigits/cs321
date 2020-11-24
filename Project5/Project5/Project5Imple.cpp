@@ -114,8 +114,6 @@ vertex4 myTransformMatrix[4] = {
 						{0.0f, 0.0f, 1.0f, 0.0f},
 						{0.0f, 0.0f, 0.0f, 1.0f} };
 
-
-
 void init_Window_Attrubutes(int argc, char** argv) {
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE);
@@ -124,7 +122,6 @@ void init_Window_Attrubutes(int argc, char** argv) {
 	glutInitWindowPosition((int) (glutGet(GLUT_SCREEN_WIDTH) - windowWidth) / 2, (int) (glutGet(GLUT_SCREEN_HEIGHT) - windowHeight) / 2);  // auto version -> 
 	glutCreateWindow("Project 5");
 }
-
 
 void other_init()
 {
@@ -780,13 +777,13 @@ void CreateArray()	{
 	   else if (line.substr(0, 2) == "se") { Number_of_se += 1; }
 	   else if (line.substr(0, 6) == "usemtl") { Number_of_usemtl += 1; }
 	   else if (line.substr(0, 6) == "mtllib") { Number_of_mtllib += 1; }
-	   else { printf("Unknown line found in file.  Line#%d", totalLineCount); }
+	   else { printf("Unknown line found in file.  Line#%d\n", totalLineCount); }
    }
    arrayPtr_f = (float*)malloc(Number_of_faces * array_f_ColCount * 8); // 4 bytes for each int, 8 for float
-   arrayPtr_o = (char*)malloc(Number_of_object_names * array_o_ColCount * 8);
-   arrayPtr_g = (char*)malloc(Number_of_group_names * array_g_ColCount * 8);
-   arrayPtr_usemtl = (char*)malloc(Number_of_usemtl * array_usemtl_ColCount * 8);
-   arrayPtr_v = (float*)malloc(Number_of_vertices * array_v_ColCount * 8);
+   arrayPtr_o = (char*)malloc(Number_of_object_names * array_o_ColCount * 256);
+   arrayPtr_g = (char*)malloc(Number_of_group_names * array_g_ColCount * 256);
+   arrayPtr_usemtl = (char*)malloc(Number_of_usemtl * array_usemtl_ColCount * 64);
+   arrayPtr_v = (float *) malloc((Number_of_vertices * array_v_ColCount) * 8);
    arrayPtr_smoothShading = (float*)malloc(Number_of_smoothshade * array_ss_ColCount * 8);
    arrayPtr_ka = (float*)malloc(Number_of_ka * array_ka_ColCount * 8);
    arrayPtr_kd = (float*)malloc(Number_of_kd * array_kd_ColCount * 8);
@@ -811,6 +808,7 @@ void ReadDataBySpace() {
 	char second_char_on_line;
 	char third_char_on_line;
 	char char_in_view;
+	char prev_char_in_view=0;
 	char tempstr[256] = " ";
 	int line_length = 0;
 	int i = 0, j = 0;
@@ -818,6 +816,7 @@ void ReadDataBySpace() {
 	int jumpFlag = 0;
 	float sum_X = 0, sum_Y = 0, sum_Z = 0;
 	GLfloat temp_X = 0, temp_Y = 0, temp_Z = 0;
+	GLfloat temp_U = 0, temp_V = 0, temp_W = 0;
 	const int delimiter_max = 20;
 
 	int delimiter[delimiter_max];
@@ -874,40 +873,109 @@ void ReadDataBySpace() {
 		// loop to look for something other than numbers (and spaces).
 		for (j = 0; j < line_length; j++) {
 			char_in_view = (line.substr(j, 1).c_str()[0]);
-			if (char_in_view == ' ') {
+			if (char_in_view == '#') {
 				delimiter_index += 1;
 				delimiter[delimiter_index] = j;
+				delimiter_index += 1;
+				delimiter[delimiter_index] = j+1;
+				break;
+			}else if (char_in_view == ' ') {
+				if (prev_char_in_view != char_in_view) {
+					delimiter_index += 1;
+				}
+				delimiter[delimiter_index] = j;
 			}
+			prev_char_in_view = char_in_view;
 		}
 
 		for (j = 0; j < delimiter_index; j++) {
 
 		}
-		obj_code = line.substr(delimiter[j], (delimiter[j+1]-delimiter[j]));
-		if (obj_code == "o") { 
+		obj_code = line.substr(0, delimiter[0]);
+		if (obj_code.substr(0, 1) == "o") {
 			Index_of_object_names += 1;
-			PutArrayVal(arrayPtr_o, Index_of_object_names, 0, line.substr(delimiter[1], (line_length - delimiter[1])));
+			////PutArrayVal_c(arrayPtr_o, Index_of_object_names, 0, line.substr(delimiter[1], (line_length - delimiter[1])));
 		}
 		else if (obj_code == "g") { 
 			Index_of_group_names += 1; 
-			PutArrayVal(arrayPtr_g, Index_of_group_names, 0, line.substr(delimiter[1], (line_length - delimiter[1])).c_str()[0]);
+			//PutArrayVal_c(arrayPtr_g, Index_of_group_names, 0, line.substr(delimiter[1], (line_length - delimiter[1])));
 		}
-		else if (obj_code == "v") { Index_of_vertices += 1; }
-		else if (obj_code == "f") { Index_of_faces += 1; }
-		else if (obj_code == "#") { Index_of_comments += 1; }
-		else if (obj_code == "s") { Index_of_smoothshade += 1; }
-		else if (obj_code == "vn") { Index_of_normals += 1; }
-		else if (obj_code == "ka") { Index_of_ka += 1; }
-		else if (obj_code == "kd") { Index_of_kd += 1; }
-		else if (obj_code == "ks") { Index_of_ks += 1; }
-		else if (obj_code == "ke") { Index_of_ke += 1; }
-		else if (obj_code == "se") { Index_of_se += 1; }
-		else if (obj_code == "usemtl") { Index_of_usemtl += 1; }
-		else if (obj_code == "mtllib") { Index_of_mtllib += 1; }
-		else { printf("Unknown line found in file.  Line#%d", totalLineCount); }
+		else if (obj_code.substr(0,1) == "v" ) {
+			Index_of_vertices += 1; 
+			if (delimiter_index > 2) {
+				temp_line = line.substr(delimiter[0] + 1, (delimiter[4] - delimiter[3]) - 1);
+				sscanf_s(temp_line.c_str(), "%f %f %f %f", &temp_X, &temp_Y, &temp_Z, &temp_W);
+			}
+			else {
+				temp_line = line.substr(delimiter[0] + 1, (line_length - delimiter[0]) - 1);
+				sscanf_s(temp_line.c_str(), "%f %f %f", &temp_X, &temp_Y, &temp_Z);
+			}
+			*(arrayPtr_v + Index_of_vertices * array_v_ColCount + 0)= temp_X;
+			*(arrayPtr_v + Index_of_vertices * array_v_ColCount + 1)= temp_Y;
+			*(arrayPtr_v + Index_of_vertices * array_v_ColCount + 2) = temp_Z;
+			printf("X=%f Y=%f Z=%f\n", 
+				arrayPtr_v[Index_of_vertices * array_v_ColCount + 0], 
+				arrayPtr_v[Index_of_vertices * array_v_ColCount + 1],
+				arrayPtr_v[Index_of_vertices * array_v_ColCount + 2]);
+		}
+		else if (obj_code.substr(0,1) == "f") {
+			Index_of_faces += 1; 
+			temp_line = line.substr(delimiter[0] + 1, (line_length - delimiter[0]) - 1);
+			for (i = 0; i < (line_length - delimiter[0]) - 1; i++) {
+				if (temp_line.substr(i, 1) == "/") { temp_line.replace(i,1, " "); }
+			}
+			sscanf_s(temp_line.c_str(),
+				"%f %f %f %f %f %f", &temp_X, &temp_U, &temp_Y, &temp_V, &temp_Z, &temp_W);
+			*(arrayPtr_f + Index_of_faces * array_f_ColCount + 0) = temp_X;
+			*(arrayPtr_f + Index_of_faces * array_f_ColCount + 1) = temp_Y;
+			*(arrayPtr_f + Index_of_faces * array_f_ColCount + 2) = temp_Z;
+			*(arrayPtr_f + Index_of_faces * array_f_ColCount + 3) = temp_U;
+			*(arrayPtr_f + Index_of_faces * array_f_ColCount + 4) = temp_V;
+			*(arrayPtr_f + Index_of_faces * array_f_ColCount + 5) = temp_W;
+			printf("V1=%f f1=%f V2=%f f2=%f v3=%f f3=%f\n", 
+				arrayPtr_f[Index_of_faces * array_f_ColCount + 0],
+				arrayPtr_f[Index_of_faces * array_f_ColCount + 0+3],
+				arrayPtr_f[Index_of_faces * array_f_ColCount + 1],
+				arrayPtr_f[Index_of_faces * array_f_ColCount + 1+3],
+				arrayPtr_f[Index_of_faces * array_f_ColCount + 2],
+				arrayPtr_f[Index_of_faces * array_f_ColCount + 2+3]);
+		}
+		else if (obj_code.substr(0, 1) == " ") {
+			// empty line
+		}
+		else if (obj_code.substr(0, 1) == "#") {
+			Index_of_comments += 1;
+		}
+		else if (obj_code.substr(0, 1) == "s") {
+			Index_of_smoothshade += 1; 
+		}
+		else if (obj_code.substr(0, 2) == "vn") {
+			Index_of_normals += 1; }
+		else if (obj_code.substr(0, 2) == "ka") {
+			Index_of_ka += 1;
+		}
+		else if (obj_code.substr(0, 2) == "kd") {
+			Index_of_kd += 1;
+		}
+		else if (obj_code.substr(0, 2) == "ks") {
+			Index_of_ks += 1;
+		}
+		else if (obj_code.substr(0, 2) == "ke") {
+			Index_of_ke += 1; 
+		}
+		else if (obj_code.substr(0, 2) == "se") {
+			Index_of_se += 1; 
+		
+		}
+		else if (obj_code.substr(0, 6) == "usemtl") {
+			Index_of_usemtl += 1; }
+		else if (obj_code.substr(0, 6) == "mtllib") {
+			Index_of_mtllib += 1; 
+		}
+		else { printf("Unknown line found in file.  Line#%d\n", i); }
 
 
-
+/*
 		if (j < 1) {
 				if (line_length > 0) {
 					first_char_on_line = (line.substr(j, 1).c_str()[0]);
@@ -959,12 +1027,12 @@ void ReadDataBySpace() {
 
 			sscanf_s(line.c_str(), "%f %f %f", &temp_X, &temp_Y, &temp_Z);
 			//arrayPtr_v[i * arrayColCount] = temp_X ;
-			PutArrayVal(arrayPtr_v, i, 0, temp_X);
-			PutArrayVal(arrayPtr_v, i, 1, temp_Y);
-			PutArrayVal(arrayPtr_v, i, 2, temp_Z);
+			PutArrayVal_f(arrayPtr_v, i, 0, temp_X);
+			PutArrayVal_f(arrayPtr_v, i, 1, temp_Y);
+			PutArrayVal_f(arrayPtr_v, i, 2, temp_Z);
 			//arrayPtr_v[i * arrayColCount + 1]=temp_Y ;
 			//arrayPtr_v[i * arrayColCount + 2]= temp_Z;
-
+*/
 			if (temp_X > max_X) max_X = temp_X;
 			if (temp_Y > max_Y) max_Y = temp_Y;
 			if (temp_Z > max_Z) max_Z = temp_Z;
@@ -982,15 +1050,15 @@ void ReadDataBySpace() {
 			//printf("arra=X%f Y%f Z%f J%f\n", arrayPtr[i * arrayColCount], arrayPtr[i * arrayColCount + 1], arrayPtr[i * arrayColCount + 2], arrayPtr[i * arrayColCount + 3]);
 			//printf("\n\n");
 			i++;
-		}
+		//}
 	}
 
 
 	//printf("Loop ends.\n");
 	//*(arrayPtr_v + (totalLineCount -1) * arrayColCount + 3) = 2;
-	average_X = sum_X / ave_count;
-	average_Y = sum_Y / ave_count;
-	average_Z = sum_Z / ave_count;
+	average_X = sum_X / (float) ave_count;
+	average_Y = sum_Y / (float) ave_count;
+	average_Z = sum_Z / (float) ave_count;
 	
 	myNormalizer = abs(min_X);
 	if (myNormalizer < abs(min_Y)) myNormalizer = abs(min_Y);
@@ -1021,12 +1089,20 @@ void ReadDataBySpace() {
 	printf("Min_X=%f, Max_X=%f, Min_Y=%f, Max_Y=%f, Min_Z=%f, Max_Z=%f\n ", min_X, max_X, min_Y, max_Y, min_Z, max_Z );
 }
 
-void PutArrayVal(float* arrayPtr,int Column, int Row, GLfloat value){
-	arrayPtr[Row * arrayColCount +Column] = value;
+
+void PutArrayVal_f(float* arrayPtr,int Row, int Column, GLfloat value){
+	*(arrayPtr + Row * arrayColCount + Column) = value;
 }
 
 float GetArrayVal(float* arrayPtr, int Column, int Row) {
 	return  * (arrayPtr + Row * arrayColCount + Column);
+}
+
+void PutArrayVal_c(char* arrayPtr, int Column, int Row, char* value) {
+	for (int i = 0; i < sizeof(value); i++) {
+		arrayPtr[i] = value[i];
+	}
+	//arrayPtr[Row * arrayColCount + Column] = value;
 }
 
 void draw_triangle(int v1, int v2, int v3, int color)

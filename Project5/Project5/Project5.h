@@ -39,7 +39,8 @@ void IndentifyMyTransformMatrix();
 void RotateMyTransformMatrix(GLfloat myAngle, GLfloat x, GLfloat y, GLfloat z);
 void drawImgData();
 void drawBorder();
-void PutArrayVal(float* arrayPtr, int Column, int Row, GLfloat value);
+void PutArrayVal_f(float* arrayPtr, int Column, int Row, GLfloat value);
+void PutArrayVal_c(char* arrayPtr, int Column, int Row, char* value);
 float GetArrayVal(float* arrayPtr, int Column, int Row);
 void draw_triangle(int v1, int v2, int v3, int color);
 #endif
