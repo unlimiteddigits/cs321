@@ -27,20 +27,20 @@ void closeFile();
 void FreeMem();
 void other_init();
 void timer(int);
-void FixViewport(int width, int height);
 void DoBackgroundStuff();
 void myCloseEvent();
 void drawString(float x, float y, float z, char* mystring);
 void myMouseEvent(int button, int state, int x, int y);                //for extra credit
 void MouseMotionEvent(int x, int y);
-void TranslateMyTransformMatrix(GLfloat x, GLfloat y, GLfloat z);
 void ScaleMyTransformMatrix(GLfloat myScaleX, GLfloat myScaleY, GLfloat myScaleZ);
 void IndentifyMyTransformMatrix();
-void RotateMyTransformMatrix(GLfloat myAngle, GLfloat x, GLfloat y, GLfloat z);
 void drawImgData();
 void drawBorder();
 void PutArrayVal_f(float* arrayPtr, int Column, int Row, GLfloat value);
 void PutArrayVal_c(char* arrayPtr, int Column, int Row, char* value);
 float GetArrayVal(float* arrayPtr, int Column, int Row);
-void draw_triangle(int v1, int v2, int v3, int color);
+void draw_triangle(int v1, int v2, int v3, int f1, int f2, int f3, int color);
+void drawSolid();
+void reshape(int w, int h);
+void set_up_light(void);
 #endif

@@ -25,13 +25,13 @@ int main(int argc, char** argv)
 		PromptFileName();
 		CreateArray();
 		ReadDataBySpace();
-		//BuildForDisplay();
 		closeFile();
 		init_Window_Attrubutes(argc, argv);
 		other_init();
+		set_up_light();
 		glutSetOption(GLUT_ACTION_ON_WINDOW_CLOSE, GLUT_ACTION_CONTINUE_EXECUTION);
+		glutReshapeFunc(reshape);
 		glutDisplayFunc(display);
-		glutReshapeFunc(FixViewport);
 		glutTimerFunc(0, timer, 0);
 		glutMainLoop();
 		// repeat option for the grader's convenience.
