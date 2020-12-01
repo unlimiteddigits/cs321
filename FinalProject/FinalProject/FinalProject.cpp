@@ -21,8 +21,8 @@
 
 const int cX = 0, cY = 1, cZ = 2;
 
-GLfloat Ex = 0.0, Ey = 0.0, Ez = 2.0,
-Ax = 0.0, Ay = 0.0, Az = 0.0,
+GLfloat Ex = 0.50, Ey = 0.50, Ez = 2.0,
+Ax = 0.50, Ay = 0.50, Az = 0.0,
 Ux = 0.0, Uy = 1.0, Uz = 0.0;
 double ViewAngleX = 0;
 double ViewAngleY = 0;
@@ -32,11 +32,11 @@ double AtAngleY = 0;
 double AtAngleZ = 0;
 
 static GLint width, height;
-static GLfloat LR = -3.0;
+static GLfloat LR = -2.0;
 static GLfloat theta = 0;
 
-GLfloat ambient_light[] = { 0.6, 0.6, 0.6, 1.0 };
-GLfloat diffuse_light[] = { 0.6, 0.6, 0.6, 1.0 };
+GLfloat ambient_light[] = { 0.6f, 0.6f, 0.6f, 1.0f };
+GLfloat diffuse_light[] = { 0.6f, 0.6f, 0.6f, 1.0f };
 
 GLfloat light_position[] = { -2.0, -2.0, 2.0, 1.0 };
 GLfloat light_directional[] = { -2.0, 1.0, 2.0, 0.0 };
@@ -64,8 +64,8 @@ void change_view()
 	gluLookAt(Ex, Ey, Ez, Ax, Ay, Az, Ux, Uy, Uz);
 }
 
-void drawString(float x, float y, float z, char* mystring) {
-	glRasterPos3f(x, y, z);
+void drawString(double x, double y, double z, char* mystring) {
+	glRasterPos3f((GLfloat) x, (GLfloat)y, (GLfloat)z);
 
 	for (char* c = mystring; *c != '\0'; c++) {
 		glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, *c);  // Updates the position
@@ -115,10 +115,10 @@ void display(void)
 
 	// DrawAxisLines();
 	mazeFloor();
-	glTranslatef(-1.2, 1.2, 0.0);
-	glutSolidTeapot(0.8);
-	glTranslatef(2.0, -2.0, 0.0);
-	glutSolidSphere(0.8, 20, 16);
+	//glTranslatef(-1.2, 1.2, 0.0);
+	//glutSolidTeapot(0.8);
+	//glTranslatef(2.0, -2.0, 0.0);
+	//glutSolidSphere(0.8, 20, 16);
 	glLightfv(GL_LIGHT0, GL_POSITION, light_position);
 	glPopMatrix();
 	//Status info
@@ -138,8 +138,8 @@ void keyboard(unsigned char key, int x, int y)
 	{
 	case 'X': ViewAngleX += 5;
 		radians = (GLfloat)(ViewAngleX * (GLfloat)(M_PI / 180));
-		Ez = (2.0) * cos(radians);
-		Ey = (2.0) * sin(radians);
+		Ez = (GLfloat)(2.0) * cos(radians);
+		Ey = (GLfloat)(2.0) * sin(radians);
 		if (Ez < 0)
 			Uy = -1.0;
 		if (Ez >= 0)
@@ -147,34 +147,34 @@ void keyboard(unsigned char key, int x, int y)
 		break;
 	case 'Y': ViewAngleY += 5;
 		radians = (GLfloat)(ViewAngleY * (GLfloat)(M_PI / 180));
-		Ez = (2.0) * cos(radians);
-		Ex = (2.0) * sin(radians);
+		Ez = (GLfloat)(2.0) * cos(radians);
+		Ex = (GLfloat)(2.0) * sin(radians);
 		Uy = 1.0;
 		break;
 	case 'Z': ViewAngleZ += 5;
 		radians = (GLfloat)(ViewAngleZ * (GLfloat)(M_PI / 180));
-		Ex = (2.0) * sin(radians);
-		Ey = (2.0) * cos(radians);
+		Ex = (GLfloat)(2.0) * sin(radians);
+		Ey = (GLfloat)(2.0) * cos(radians);
 		break;
 	case 'x': ViewAngleX -= 5;
 		radians = (GLfloat)(ViewAngleX * (GLfloat)(M_PI / 180));
-		Ez = (2.0) * cos(radians);
-		Ey = (2.0) * sin(radians);
+		Ez = (GLfloat)(2.0) * cos(radians);
+		Ey = (GLfloat)(2.0) * sin(radians);
 		if (Ez < 0)
-			Uy = -1.0;
+			Uy = (GLfloat)-1.0;
 		if (Ez >= 0)
-			Uy = 1.0;
+			Uy = (GLfloat)1.0;
 		break;
 	case 'y': ViewAngleY -= 5;
 		radians = (GLfloat)(ViewAngleY * (GLfloat)(M_PI / 180));
-		Ez = (2.0) * cos(radians);
-		Ex = (2.0) * sin(radians);
+		Ez = (GLfloat)(2.0) * cos(radians);
+		Ex = (GLfloat)(2.0) * sin(radians);
 		Uy = 1.0;
 		break;
 	case 'z': ViewAngleZ -= 5;
 		radians = (GLfloat)(ViewAngleZ * (GLfloat)(M_PI / 180));
-		Ex = (2.0) * sin(radians);
-		Ey = (2.0) * cos(radians);
+		Ex = (GLfloat) (2.0) * sin(radians);
+		Ey = (GLfloat) (2.0) * cos(radians);
 		break;
 	case 'V': Ay += 5;  break;
 	case 'v': Ay -= 5;	break;
@@ -183,7 +183,7 @@ void keyboard(unsigned char key, int x, int y)
 	case 'W': Az += 5;  break;
 	case 'w': Az -= 5;	break;
 	case 'i':case 'I':
-		Ex = 0; Ey = 0; Ez = 2.0, Ax = 0; Ay = 0; Az = 0, Ux = 0; Uy = 1; Uz = 0;
+		Ex = 0.5; Ey = 0.5; Ez = 2.0, Ax = 0.5; Ay = 0.5; Az = 0, Ux = 0; Uy = 1; Uz = 0;
 		ViewAngleX = 0, ViewAngleY = 0, ViewAngleZ = 0;
 		light_position[cX] = -2.0, light_position[cY] = -2.0, light_position[cZ] = 0;
 		break;
@@ -246,12 +246,16 @@ void reshape(int w, int h)
 	glViewport(0, 0, w, h);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
+
 	if (w <= h)
 		glOrtho(LR, -LR, LR * (GLfloat)h / (GLfloat)w,
 			-LR * (GLfloat)h / (GLfloat)w, LR, -LR * 2);
 	else
 		glOrtho(LR * (GLfloat)w / (GLfloat)h,
 			-LR * (GLfloat)w / (GLfloat)h, LR, -LR, LR, -LR);
+	glOrtho(0 * (GLfloat)w / (GLfloat)h,
+		1 * (GLfloat)w / (GLfloat)h, 0, 1, 1, 0);
+	//glOrtho(0, 1, 0, 1, 1, 0);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 	width = w;	height = h;
@@ -269,7 +273,7 @@ void init_window(int argc, char** argv)
 	glLoadIdentity();
 }
 
-void main(int argc, char** argv)
+int main(int argc, char** argv)
 {
 	init_window(argc, argv);
 	other_init();

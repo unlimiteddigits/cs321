@@ -51,17 +51,17 @@ void mazeFloor() {
 
 	//glEnable(GL_LINES);
 	glBegin(GL_LINE_STRIP);
-	glVertex3f(-1.0f, -1.0f, 0.0f);
-	glVertex3f(-0.1f, -0.1f, 0.0f);
-	glVertex3f(0.1f, -0.1f, 0.0f);
-	glVertex3f(1.0f, -1.0f, 0.0f);
+	glVertex3f(0.0f, 0.0f, 0.0f);
+	glVertex3f(.4f, 0.4f, 0.0f);
+	glVertex3f(0.6f, 0.4f, 0.0f);
+	glVertex3f(1.0f, 0.0f, 0.0f);
 	glEnd();
 
 	//glEnable(GL_LINES);
 	glBegin(GL_LINE_STRIP);
-	glVertex3f(-1.0f, 1.0f, 0.0f);
-	glVertex3f(-0.1f, 0.1f, 0.0f);
-	glVertex3f(0.1f, 0.1f, 0.0f);
+	glVertex3f(0.0f, 1.0f, 0.0f);
+	glVertex3f(0.4f, 0.6f, 0.0f);
+	glVertex3f(0.6f, 0.6f, 0.0f);
 	glVertex3f(1.0f, 1.0f, 0.0f);
 	glEnd();
 
