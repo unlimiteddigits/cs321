@@ -140,6 +140,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="FinalProject.cpp" />
+    <ClCompile Include="Implement.cpp" />
     <ClCompile Include="maze.cpp" />
   </ItemGroup>
   <ItemGroup>

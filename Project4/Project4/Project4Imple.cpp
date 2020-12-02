@@ -623,7 +623,7 @@ void timer(int n) {
 			//glRotatef(1, 1.0f, 0.0f, 0.0f);                  // Rotate 1 deg at each time
 			glutPostRedisplay();                           
 			glutTimerFunc(1000 / 60, timer, 0);              // 60 refreshes per second
-			glutSetWindowTitle("Project 3 - Press q to quit.");
+			glutSetWindowTitle("Project 4 - Press q to quit.");
 		}
 	}
 }
