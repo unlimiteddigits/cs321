@@ -10,3 +10,4 @@ void display(void);
 void reshape(int w, int h);
 void init_window(int argc, char** argv);
 void keyboard(unsigned char key, int x, int y);
+void DoBackgroundStuff();

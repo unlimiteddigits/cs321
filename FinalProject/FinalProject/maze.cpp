@@ -88,7 +88,7 @@ void mazeFloor() {
 	char Z_Label[] = "Z-Axis";
 
 	glPushMatrix();
-	
+	//glLoadIdentity();
 	glTranslatef(0.50, 0.5, 0.0);
 
 	//glEnable(GL_LINES);
@@ -106,7 +106,9 @@ void mazeFloor() {
 	glVertex3f(0.6f, 0.6f, 0.0f);
 	glVertex3f(1.0f, 1.0f, 0.0f);
 	glEnd();
+	//glLoadIdentity();
 	glPopMatrix();
+	glTranslatef(0.50, 0.5, 0.0);
 
 	GLfloat sqSize = .05;
 	GLfloat sqBorder = .008;
@@ -163,6 +165,7 @@ void mazeFloor() {
 				glRotatef(270.0f, 0.0, 0.0, 1.0);
 				drawWall();
 				glPopMatrix();
+				//printf("xll=%.2f\n", xll);
 			}
 			if (squares[blockNumber] & 8) {
 				glBegin(GL_LINES);

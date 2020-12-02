@@ -10,9 +10,10 @@
 
 const int cX = 0, cY = 1, cZ = 2;
 
-GLdouble eye[3] = { 0.5,0.5,2.0 };
+//GLdouble eye[3] = { 0.5,0.5,2.0 };
+GLdouble eye[3] = { 0.5,-2.5, -0.0 }; // Starting here doesn't
 GLdouble center[3] = { 0.5,0.5,0 };
-GLdouble up[3] = { 0,1,0 };
+GLdouble up[3] = { 0,-1,0 };
 
 double ViewAngleX = 0;
 double ViewAngleY = 0;
@@ -36,6 +37,8 @@ GLfloat r_diffuse_light[] = { 1.0, 0.0, 0.0, 1.0 };
 GLfloat g_diffuse_light[] = { 0.0, 1.0, 0.0, 1.0 };
 GLfloat b_diffuse_light[] = { 0.0, 0.0, 1.0, 1.0 };
 
+int bTopView = 1;
+
 void init_window(int argc, char** argv)
 {
 	glutInit(&argc, argv);
@@ -50,6 +53,7 @@ void init_window(int argc, char** argv)
 
 void other_init()
 {
+	glutIdleFunc(DoBackgroundStuff);    // playing with more functions
 	glClearColor(0.0, 0.0, 0.0, 0.0);
 	glShadeModel(GL_SMOOTH);
 	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, ambient_light);
@@ -60,10 +64,34 @@ void other_init()
 	glMatrixMode(GL_MODELVIEW);         // Get Back to the Modelview
 }
 
+void DoBackgroundStuff() {
+
+	GLfloat radians = 0;
+
+	if (bTopView)     // 
+	{
+		//printf("Doing idle Stuff...\n"); 
+		bTopView = 0;
+		for (double i = 0; i >= -90.0; i=i-5) {
+			ViewAngleX = i;
+			radians = (GLfloat)(ViewAngleX * (GLfloat)(M_PI / 180));
+			eye[cZ] = (GLfloat)(2.0) * cos(radians);
+			eye[cY] = (GLfloat)(2.0) * sin(radians);
+			if (eye[cZ] < 0)
+				up[cY] = -1.0;
+			if (eye[cZ] >= 0)
+				up[cY] = 1.0;
+			display();
+		}
+	}
+
+}
+
 void change_view()
 {
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
+	
 	gluLookAt(eye[cX], eye[cY], eye[cZ], center[cX], center[cY], center[cZ], up[cX], up[cY], up[cZ]);
 }
 
@@ -112,12 +140,12 @@ void display(void)
 	char sResult[200];
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glLoadIdentity();
-	glPushMatrix();
 	change_view();
-
-	// DrawAxisLines();
 	mazeFloor();
+	//glLoadIdentity();
+	glPushMatrix();
+
+	 DrawAxisLines();
 	//glTranslatef(-1.2, 1.2, 0.0);
 	//glutSolidTeapot(0.8);
 	//glTranslatef(2.0, -2.0, 0.0);
@@ -125,12 +153,14 @@ void display(void)
 	glLightfv(GL_LIGHT0, GL_POSITION, light_position);
 	glPopMatrix();
 	//Status info
+	glLoadIdentity();
 	sprintf_s(sResult, " Press x/X:  eye[cX]=%0.1f eye[cY]=%0.1f eye[cZ]=%0.1f \nAx=%0.1f center[cY]=%0.1f center[cZ]=%0.1f \nUx=%0.1f up[cY]=%0.1f up[cZ]=%0.1f", (float)eye[cX], (float)eye[cY], (float)eye[cZ], (float)center[cX], (float)center[cY], (float)center[cZ], (float)up[cX], (float)up[cY], (float)up[cZ]);
-	drawString(-2.8, -2.5, 0, sResult);
+	drawString(-.50, 1.0, 0, sResult);
 	sprintf_s(sResult, " Light Position:  X=%0.1f Y=%0.1f Z=%0.1f (Numeric Keypad 2-8)  Plus u,v,w,r,g,b,d,f,p,i", (float)light_position[cX], (float)light_position[cY], (float)light_position[cZ]);
-	drawString(-2.8, -2.65, 0, sResult);
+	drawString(-.5, 0.85, 0, sResult);
 
 	glFlush();
+	glutSwapBuffers();
 }
 
 void reshape(int w, int h)
@@ -146,7 +176,7 @@ void reshape(int w, int h)
 		glOrtho(LR * (GLfloat)w / (GLfloat)h,
 			-LR * (GLfloat)w / (GLfloat)h, LR, -LR, LR, -LR);
 	glOrtho(-.010 * (GLfloat)w / (GLfloat)h,
-		1.01 * (GLfloat)w / (GLfloat)h, -0.01, 1.01, 1, 0);
+		1.01 * (GLfloat)w / (GLfloat)h, -0.01, 1.01, 1, -1);
 	//glOrtho(0, 1, 0, 1, 1, 0);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
@@ -206,8 +236,8 @@ void keyboard(unsigned char key, int x, int y)
 	case 'W': center[cZ] += 5;  break;
 	case 'w': center[cZ] -= 5;	break;
 	case 'i':case 'I':
-		eye[cX] = 0.5; eye[cY] = 0.5; eye[cZ] = 2.0, center[cX] = 0.5; center[cY] = 0.5; center[cZ] = 0, up[cX] = 0; up[cY] = 1; up[cZ] = 0;
-		ViewAngleX = 0, ViewAngleY = 0, ViewAngleZ = 0;
+		eye[cX] = 0.5; eye[cY] = -2.5; eye[cZ] = 0, center[cX] = 0.5; center[cY] = 0.5; center[cZ] = 0, up[cX] = 0; up[cY] = 1; up[cZ] = 0;
+		ViewAngleX = -90., ViewAngleY = 0, ViewAngleZ = 0;
 		light_position[cX] = -2.0, light_position[cY] = -2.0, light_position[cZ] = 0;
 		break;
 	case '2':
