@@ -10,10 +10,17 @@
 
 const int cX = 0, cY = 1, cZ = 2;
 
-//GLdouble eye[3] = { 0.5,0.5,2.0 };
-GLdouble eye[3] = { 0.5,-2.5, -0.0 }; // Starting here doesn't
-GLdouble center[3] = { 0.5,0.5,0 };
-GLdouble up[3] = { 0,-1,0 };
+GLfloat windowWidth = VIEWSTARTW;
+GLfloat windowHeight = VIEWSTARTH;
+GLfloat viewportWidth = VIEWSTARTW;
+GLfloat viewportHeight = VIEWSTARTH;
+GLfloat viewportXOffset = 0;
+GLfloat viewportYOffset = 0;
+
+GLdouble eye[3] = { 0.5,0.5,2.0 };
+//GLdouble eye[3] = { 0.5,-0.5, -0.0 }; // Starting here doesn't
+GLdouble center[3] = { 0.5,0.50,0 };
+GLdouble up[3] = { 0,1,0 };
 
 double ViewAngleX = 0;
 double ViewAngleY = 0;
@@ -23,8 +30,13 @@ double AtAngleY = 0;
 double AtAngleZ = 0;
 
 static GLint width, height;
-static GLfloat LR = -2.0;
-static GLfloat theta = 0;
+GLfloat orthoLeft = ORTHOLEFTSTART;
+GLfloat orthoRight = ORTHORIGHTSTART;
+GLfloat orthoBottom = ORTHOBOTTOMSTART; 
+GLfloat orthoTop = ORTHOTOPSTART;
+GLfloat orthoNear = ORTHONEARSTART; 
+GLfloat orthoFar = ORTHOFARSTART;
+GLfloat moveStep = 0.01;
 
 
 GLfloat ambient_light[] = { 0.6f, 0.6f, 0.6f, 1.0f };
@@ -38,14 +50,14 @@ GLfloat g_diffuse_light[] = { 0.0, 1.0, 0.0, 1.0 };
 GLfloat b_diffuse_light[] = { 0.0, 0.0, 1.0, 1.0 };
 
 int bTopView = 1;
+GLfloat ManPosX = 0, ManPosY = 0;
 
 void init_window(int argc, char** argv)
 {
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_RGB | GLUT_DEPTH);
-	width = height = 500;
-	glutInitWindowSize(width, height);
-	glutInitWindowPosition(50, 50);
+	glutInitWindowSize((int)windowWidth, (int)windowHeight);
+	glutInitWindowPosition((int)(glutGet(GLUT_SCREEN_WIDTH) - windowWidth) / 2, (int)(glutGet(GLUT_SCREEN_HEIGHT) - windowHeight) / 2);  // auto version -> 
 	glutCreateWindow("Maze");
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
@@ -54,7 +66,7 @@ void init_window(int argc, char** argv)
 void other_init()
 {
 	glutIdleFunc(DoBackgroundStuff);    // playing with more functions
-	glClearColor(0.0, 0.0, 0.0, 0.0);
+	glClearColor(0.0, 0.0, 1.0, 1.0);
 	glShadeModel(GL_SMOOTH);
 	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, ambient_light);
 	glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE,
@@ -68,7 +80,14 @@ void DoBackgroundStuff() {
 
 	GLfloat radians = 0;
 
-	if (bTopView)     // 
+	GLfloat	increment;
+	increment = .066;
+	GLfloat positionX = increment * 11 - (increment / 2);
+	GLfloat positionY = -(increment / 2);
+//	ManPosX = positionX;
+//	ManPosY = positionY;
+
+	if (bTopView==2)     // 
 	{
 		//printf("Doing idle Stuff...\n"); 
 		bTopView = 0;
@@ -83,6 +102,21 @@ void DoBackgroundStuff() {
 				up[cY] = 1.0;
 			display();
 		}
+		// like '+'/'-'
+		orthoLeft = ManPosX-moveStep;
+		orthoRight = ManPosX+moveStep;
+		orthoBottom = ManPosY-moveStep;
+		orthoTop = ManPosY+moveStep;
+		 
+		eye[cX] = ManPosX;
+		eye[cY] = ManPosY-.1;
+		eye[cZ] = .066;
+		center[cX] = ManPosX;
+		center[cY] = ManPosY;
+		center[cZ] = .066;
+		reshape(viewportWidth, viewportHeight);
+		
+		//viewportWidth
 	}
 
 }
@@ -141,11 +175,12 @@ void display(void)
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	change_view();
+	drawBorder(0, 0, 600, 400);
 	mazeFloor();
 	//glLoadIdentity();
 	glPushMatrix();
 
-	 DrawAxisLines();
+	 //DrawAxisLines();
 	//glTranslatef(-1.2, 1.2, 0.0);
 	//glutSolidTeapot(0.8);
 	//glTranslatef(2.0, -2.0, 0.0);
@@ -154,39 +189,112 @@ void display(void)
 	glPopMatrix();
 	//Status info
 	glLoadIdentity();
-	sprintf_s(sResult, " Press x/X:  eye[cX]=%0.1f eye[cY]=%0.1f eye[cZ]=%0.1f \nAx=%0.1f center[cY]=%0.1f center[cZ]=%0.1f \nUx=%0.1f up[cY]=%0.1f up[cZ]=%0.1f", (float)eye[cX], (float)eye[cY], (float)eye[cZ], (float)center[cX], (float)center[cY], (float)center[cZ], (float)up[cX], (float)up[cY], (float)up[cZ]);
+	sprintf_s(sResult, "eyeX=%0.3f eyeY=%0.3f eyeZ=%0.3f \nAtx=%0.3f Aty=%0.3f AtZ=%0.3f \nupX=%0.1f upY=%0.1f upZ=%0.1f", (float)eye[cX], (float)eye[cY], (float)eye[cZ], (float)center[cX], (float)center[cY], (float)center[cZ], (float)up[cX], (float)up[cY], (float)up[cZ]);
 	drawString(-.50, 1.0, 0, sResult);
-	sprintf_s(sResult, " Light Position:  X=%0.1f Y=%0.1f Z=%0.1f (Numeric Keypad 2-8)  Plus u,v,w,r,g,b,d,f,p,i", (float)light_position[cX], (float)light_position[cY], (float)light_position[cZ]);
+	sprintf_s(sResult, "Light Position: X=%0.1f Y=%0.1f Z=%0.1f (Numeric Keypad 2-8)  Plus u,v,w,r,g,b,d,f,p,i", (float)light_position[cX], (float)light_position[cY], (float)light_position[cZ]);
 	drawString(-.5, 0.85, 0, sResult);
 
+	//glViewport((GLsizei)0, (GLsizei)(windowHeight - viewportHeight), (GLint)viewportWidth, (GLint)viewportHeight);
 	glFlush();
 	glutSwapBuffers();
 }
 
 void reshape(int w, int h)
 {
-	glViewport(0, 0, w, h);
+	glViewport(0, 0, w/3, h);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 
-	if (w <= h)
-		glOrtho(LR, -LR, LR * (GLfloat)h / (GLfloat)w,
-			-LR * (GLfloat)h / (GLfloat)w, LR, -LR * 2);
+	if (w >= h)
+		glOrtho(orthoLeft, orthoRight, 
+			orthoBottom * (GLfloat)h / (GLfloat)w, orthoTop * (GLfloat)h / (GLfloat)w,
+			orthoNear, orthoFar *2 );
 	else
-		glOrtho(LR * (GLfloat)w / (GLfloat)h,
-			-LR * (GLfloat)w / (GLfloat)h, LR, -LR, LR, -LR);
-	glOrtho(-.010 * (GLfloat)w / (GLfloat)h,
-		1.01 * (GLfloat)w / (GLfloat)h, -0.01, 1.01, 1, -1);
+		glOrtho(orthoLeft * (GLfloat)w / (GLfloat)h, orthoRight * (GLfloat)w / (GLfloat)h,
+			orthoBottom, orthoTop, orthoNear, orthoFar * 2);
+	//glOrtho(-.010 * (GLfloat)w / (GLfloat)h, 1.01 * (GLfloat)w / (GLfloat)h, -0.01, 1.01, 1, -1);
 	//glOrtho(0, 1, 0, 1, 1, 0);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
-	width = w;	height = h;
+	printf("oL=%.3f oR=%.3f oB=%.3f oT=%.3f oN=%.3f oF=%.3f w=%d h=%d\n", orthoLeft, orthoRight, orthoBottom, orthoTop, orthoNear, orthoFar,w, h);
+}
+
+
+void specialKeyboardKeys(int key, int x, int y) {
+	printf("Speacial Key Pressed = %d  => ", key);
+	switch (key)
+	{
+	case GLUT_KEY_UP:
+		printf("Arrow Up\n");
+		break;
+	case GLUT_KEY_DOWN:
+		printf("Arrow Down\n");
+		break;
+	case GLUT_KEY_LEFT:
+		printf("Arrow Left\n");
+		break;
+	case GLUT_KEY_RIGHT:
+		printf("Arrow Right\n");
+		break;
+	case GLUT_KEY_F1:
+		printf("F1\n");
+		break;
+	case GLUT_KEY_F2:
+		printf("F2\n");
+		break;
+	case GLUT_KEY_F3:
+		printf("F3\n");
+		break;
+	case GLUT_KEY_F4:
+		printf("F4\n");
+		break;
+	case GLUT_KEY_F5:
+		printf("F5\n");
+		break;
+	case GLUT_KEY_F6:
+		printf("F6\n");
+		break;
+	case GLUT_KEY_F7:
+		printf("F7\n");
+		break;
+	case GLUT_KEY_F8:
+		printf("F8\n");
+		break;
+	case GLUT_KEY_F9:
+		printf("F9\n");
+		break;
+	case GLUT_KEY_F10:
+		printf("F10\n");
+		break;
+	case GLUT_KEY_F11:
+		printf("F11\n");
+		break;
+	case GLUT_KEY_F12:
+		printf("F12\n");
+		break;
+	case GLUT_KEY_PAGE_UP:
+		printf("Page up\n");
+		break;
+	case GLUT_KEY_PAGE_DOWN:
+		printf("Page Down\n");
+		break;
+	case GLUT_KEY_HOME:
+		printf("Home\n");
+		break;
+	case GLUT_KEY_END:
+		printf("End\n");
+		break;
+	case GLUT_KEY_INSERT:
+		printf("Insert\n");
+		break;
+	}
 }
 
 void keyboard(unsigned char key, int x, int y)
 {
 	GLfloat radians = 0;
 
+	//printf("Key Pressed = %c\n", key);
 	switch (key)
 	{
 	case 'X': ViewAngleX += 5;
@@ -197,12 +305,35 @@ void keyboard(unsigned char key, int x, int y)
 			up[cY] = -1.0;
 		if (eye[cZ] >= 0)
 			up[cY] = 1.0;
+		orthoLeft = ManPosX - moveStep;
+		orthoRight = ManPosX + moveStep;
+		orthoBottom = ManPosY - moveStep;
+		orthoTop = ManPosY + moveStep;
+
+		eye[cX] = ManPosX;
+		eye[cY] = ManPosY - .1;
+		eye[cZ] = .066;
+		center[cX] = ManPosX - .5;
+		center[cY] = ManPosY;
+		center[cZ] = .066;
+		up[cX] = 0;
+		up[cY] = 0;
+		up[cZ] = 1;
+		reshape(viewportWidth, viewportHeight);
 		break;
-	case 'Y': ViewAngleY += 5;
+	case 'Y':
+		//glPushMatrix();
+		glTranslatef(-ManPosX, -ManPosY, -.066);
+		glRotatef(5.0, 0, 1, 0);
+		glTranslatef(ManPosX, ManPosY, .066);
+		//glPopMatrix();
+		/*
+		ViewAngleY += 5;
 		radians = (GLfloat)(ViewAngleY * (GLfloat)(M_PI / 180));
 		eye[cZ] = (GLfloat)(2.0) * cos(radians);
 		eye[cX] = (GLfloat)(2.0) * sin(radians);
 		up[cY] = 1.0;
+		*/
 		break;
 	case 'Z': ViewAngleZ += 5;
 		radians = (GLfloat)(ViewAngleZ * (GLfloat)(M_PI / 180));
@@ -229,16 +360,73 @@ void keyboard(unsigned char key, int x, int y)
 		eye[cX] = (GLfloat)(2.0) * sin(radians);
 		eye[cY] = (GLfloat)(2.0) * cos(radians);
 		break;
-	case 'V': center[cY] += 5;  break;
-	case 'v': center[cY] -= 5;	break;
-	case 'U': center[cX] += 5;  break;
-	case 'u': center[cX] -= 5;	break;
-	case 'W': center[cZ] += 5;  break;
-	case 'w': center[cZ] -= 5;	break;
-	case 'i':case 'I':
-		eye[cX] = 0.5; eye[cY] = -2.5; eye[cZ] = 0, center[cX] = 0.5; center[cY] = 0.5; center[cZ] = 0, up[cX] = 0; up[cY] = 1; up[cZ] = 0;
-		ViewAngleX = -90., ViewAngleY = 0, ViewAngleZ = 0;
+
+	case 'L': 
+		ViewAngleZ += 20;
+		radians = (GLfloat)(ViewAngleZ * (GLfloat)(M_PI / 180));
+		eye[cX] = ManPosX+(GLfloat)(.1) * sin(radians);
+		eye[cY] = ManPosY+ (GLfloat)(-.1) * cos(radians);
+		center[cX] = ManPosX; center[cY] = ManPosY;
+		/*
+		eye[cX] = 0.7; eye[cY] = -0.6; eye[cZ] = 0.033;
+		center[cX] = 0.7; center[cY] = -0.5; center[cZ] = 0.033;
+		up[cX] = 0; up[cY] = 0; up[cZ] = 1;
+		*/
+		break;
+	case 'l': eye[cX] += moveStep; break; center[cX] += moveStep; break;
+	case 'J': case 'j': eye[cX] -= moveStep; center[cX] -= moveStep; break;
+	case 'I': case 'i': eye[cY] += moveStep; center[cY] += moveStep; break;
+	case 'K': case 'k': eye[cY] -= moveStep; center[cY] -= moveStep; break;
+	case 'U': case 'u': eye[cZ] += moveStep; center[cZ] += moveStep; break;
+	case 'V': case 'v': eye[cZ] -= moveStep; center[cZ] -= moveStep; break;
+	case '-':
+		orthoLeft -= moveStep;
+		orthoRight += moveStep;
+		orthoBottom -= moveStep;
+		orthoTop += moveStep;
+		if (orthoRight>10.0) {
+			orthoLeft += moveStep;
+			orthoRight -= moveStep;
+			orthoBottom += moveStep;
+			orthoTop -= moveStep;
+		}
+		reshape(viewportWidth, viewportHeight);
+		break;
+	case '+':
+		orthoLeft += moveStep;
+		orthoRight -= moveStep;
+		orthoBottom += moveStep;
+		orthoTop -= moveStep;
+		if (orthoLeft >= orthoRight) {
+			orthoLeft -= moveStep;
+			orthoRight += moveStep;
+			orthoBottom -= moveStep;
+			orthoTop += moveStep;
+		}
+		reshape(viewportWidth, viewportHeight);
+		break;
+	case 'W': printf("Wireframe mode");  break;
+	case '0':
+		ViewAngleX = 0; ViewAngleY = 0; ViewAngleZ = 0;
+		eye[cX] = ManPosX; eye[cY] = ManPosY -0.1; eye[cZ] = 0.033;
+		center[cX] = ManPosX; center[cY] = ManPosY; center[cZ] = 0.033;
+		up[cX] = 0; up[cY] = 0; up[cZ] = 1;
+		orthoLeft = .4;
+		orthoRight = .6;
+		orthoBottom = -.1;
+		orthoTop = .1;
+		orthoNear = -1.5;
+		orthoFar = 1.5;
+
+/*GLdouble eye[3] = { 0.5,0.5,2.0 };
+//GLdouble eye[3] = { 0.5,-0.5, -0.0 }; // Starting here doesn't
+GLdouble center[3] = { 0.5,0.50,0 };
+GLdouble up[3] = { 0,1,0 };
+*/
+		ViewAngleX = 0., ViewAngleY = 0, ViewAngleZ = 0;
+		bTopView = 1;
 		light_position[cX] = -2.0, light_position[cY] = -2.0, light_position[cZ] = 0;
+		reshape(viewportWidth, viewportHeight);
 		break;
 	case '2':
 		light_position[cY] -= 1;
@@ -294,3 +482,7 @@ void keyboard(unsigned char key, int x, int y)
 	glutPostRedisplay();
 }
 
+void updateManLocation(GLfloat x, GLfloat y) {
+	ManPosX = x;
+	ManPosY = y;
+}

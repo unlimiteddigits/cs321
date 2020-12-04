@@ -8,6 +8,13 @@
 #include <iostream>
 #include "FinalProject.h"
 
+GLfloat sqSize = .05;
+GLfloat sqBorder = .008;
+int mazeWidth = 15;
+int mazeHeight = 10;
+int row = 0, column = 0;
+int blockNumber = 0;
+
 /* Left, back, bottom*/
 /*Right, Front, top*/
 GLfloat vertices[] = { 0.000, 0.000, 0.001,    /* 0 - Back Bottom	Left */
@@ -82,6 +89,71 @@ void drawWall() {
 
 }
 
+void drawMan() {
+	GLfloat	increment;
+	increment = sqBorder + sqSize + sqBorder;
+	GLfloat positionX = increment * 11 - (increment / 2);
+	GLfloat positionY = - (increment / 2);
+	//ManPosX = positionX;
+	//ManPosY = positionY;
+
+	glPushMatrix();
+	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE,
+		colors + 5 * 3);
+
+	//position Head
+	glTranslatef(positionX, positionY, sqSize * .76);
+	//glutSolidTorus(0.004, 0.01, 20, 50);  //doughnut
+	glutSolidSphere(.009, 17, 17);
+	glTranslatef(-positionX, -positionY, -sqSize * .76);
+
+	// torso
+	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE,
+		colors + 4 * 3);
+	glTranslatef(positionX, positionY, sqSize * .5);
+	glutSolidCube(.014);
+	glTranslatef(-positionX, -positionY, -sqSize * .5);
+
+	// leg1
+	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE,
+		colors + 3 * 3);
+	glTranslatef(positionX - .003, positionY, sqSize * .35);
+	glutSolidCylinder(.005, -.015, 17, 17);
+	glTranslatef(-(positionX - .003), -positionY, -sqSize * .35);
+
+	// leg2
+	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE,
+		colors + 3 * 3);
+	glTranslatef(positionX + .003, positionY, sqSize * .35);
+	glutSolidCylinder(.005, -.015, 17, 17);
+	glTranslatef(-(positionX + .003), -positionY, -sqSize * .35);
+
+	glPopMatrix();
+	updateManLocation(positionX, positionY);
+}
+
+void drawBorder(int x, int y, int viewportWidth, int viewportHeight) {
+	glViewport((GLsizei) x, 
+		(GLsizei) y, 
+		(GLint)viewportWidth, (GLint)viewportHeight); 
+	glColor3f(1.0, 0.0, 0.0);       // for the Red - need multiple windows
+
+	glMatrixMode(GL_MODELVIEW);
+	glPushMatrix();
+	glLoadIdentity();
+	glMatrixMode(GL_PROJECTION);
+	glPushMatrix();
+	glLoadIdentity();
+	glBegin(GL_LINE_STRIP);
+	glVertex3f(.5f, 0.5f, 0.0f);  //upper right
+	glVertex3f(-.5f, 0.50f, 0.0f); //upper left
+	glVertex3f(-.5f, -0.50f, 0.0f);  // lower left
+	glVertex3f(.5f, -0.5f, 0.0f); //Lower right
+	glVertex3f(.5f, 0.5f, 0.0f); //upper right
+	glEnd();
+	glPopMatrix(); glMatrixMode(GL_MODELVIEW); glPopMatrix();
+}
+
 void mazeFloor() {
 	char X_Label[] = "X-Axis";
 	char Y_Label[] = "Y-Axis";
@@ -109,13 +181,9 @@ void mazeFloor() {
 	//glLoadIdentity();
 	glPopMatrix();
 	glTranslatef(0.50, 0.5, 0.0);
+	
+	drawMan();
 
-	GLfloat sqSize = .05;
-	GLfloat sqBorder = .008;
-	int mazeWidth = 15;
-	int mazeHeight = 10;
-	int row = 0, column = 0;
-	int blockNumber = 0;
 	GLfloat xll, xlr, xul, xur;
 	GLfloat yll, ylr, yul, yur;
 	GLfloat	increment;

@@ -20,6 +20,7 @@ int main(int argc, char** argv)
 	other_init();
 	glutDisplayFunc(display);
 	glutKeyboardFunc(keyboard);
+	glutSpecialFunc(specialKeyboardKeys);
 	glutReshapeFunc(reshape);
 	glutMainLoop();
 }
