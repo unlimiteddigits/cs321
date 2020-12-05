@@ -66,7 +66,7 @@ void init_window(int argc, char** argv)
 void other_init()
 {
 	glutIdleFunc(DoBackgroundStuff);    // playing with more functions
-	glClearColor(0.0, 0.0, 1.0, 1.0);
+	glClearColor(0.0, 0.0, 0.50, 1.0);
 	glShadeModel(GL_SMOOTH);
 	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, ambient_light);
 	glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE,
@@ -94,8 +94,8 @@ void DoBackgroundStuff() {
 		for (double i = 0; i >= -90.0; i=i-5) {
 			ViewAngleX = i;
 			radians = (GLfloat)(ViewAngleX * (GLfloat)(M_PI / 180));
-			eye[cZ] = (GLfloat)(2.0) * cos(radians);
-			eye[cY] = (GLfloat)(2.0) * sin(radians);
+			eye[cZ] = (GLfloat)(0.10) * cos(radians);
+			eye[cY] = (GLfloat)(0.10) * sin(radians);
 			if (eye[cZ] < 0)
 				up[cY] = -1.0;
 			if (eye[cZ] >= 0)
@@ -123,6 +123,7 @@ void DoBackgroundStuff() {
 
 void change_view()
 {
+	//glMatrixMode(GL_PROJECTION);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 	
@@ -187,6 +188,14 @@ void display(void)
 	//glutSolidSphere(0.8, 20, 16);
 	glLightfv(GL_LIGHT0, GL_POSITION, light_position);
 	glPopMatrix();
+	glColor3f(1.0, 1.0, 1.0);
+	glBegin(GL_LINE_STRIP);
+	glVertex3f(eye[cX], -1.0, -0.032f);  //upper right
+	glVertex3f(0, 0, -0.032f); //upper left
+	glVertex3f(center[cX], center[cY], -0.010); //upper left
+	glVertex3f(eye[cX], eye[cY], -0.032f);  //upper right
+	glEnd();
+
 	//Status info
 	glLoadIdentity();
 	sprintf_s(sResult, "eyeX=%0.3f eyeY=%0.3f eyeZ=%0.3f \nAtx=%0.3f Aty=%0.3f AtZ=%0.3f \nupX=%0.1f upY=%0.1f upZ=%0.1f", (float)eye[cX], (float)eye[cY], (float)eye[cZ], (float)center[cX], (float)center[cY], (float)center[cZ], (float)up[cX], (float)up[cY], (float)up[cZ]);
@@ -330,20 +339,20 @@ void keyboard(unsigned char key, int x, int y)
 		/*
 		ViewAngleY += 5;
 		radians = (GLfloat)(ViewAngleY * (GLfloat)(M_PI / 180));
-		eye[cZ] = (GLfloat)(2.0) * cos(radians);
-		eye[cX] = (GLfloat)(2.0) * sin(radians);
+		eye[cZ] = (GLfloat)(0.1) * cos(radians);
+		eye[cX] = (GLfloat)(0.1) * sin(radians);
 		up[cY] = 1.0;
 		*/
 		break;
 	case 'Z': ViewAngleZ += 5;
 		radians = (GLfloat)(ViewAngleZ * (GLfloat)(M_PI / 180));
-		eye[cX] = (GLfloat)(2.0) * sin(radians);
-		eye[cY] = (GLfloat)(2.0) * cos(radians);
+		eye[cX] = (GLfloat)(.1) * sin(radians);
+		eye[cY] = (GLfloat)(.1) * cos(radians);
 		break;
 	case 'x': ViewAngleX -= 5;
 		radians = (GLfloat)(ViewAngleX * (GLfloat)(M_PI / 180));
-		eye[cZ] = (GLfloat)(2.0) * cos(radians);
-		eye[cY] = (GLfloat)(2.0) * sin(radians);
+		eye[cZ] = (GLfloat)(.1) * cos(radians);
+		eye[cY] = (GLfloat)(.1) * sin(radians);
 		if (eye[cZ] < 0)
 			up[cY] = (GLfloat)-1.0;
 		if (eye[cZ] >= 0)
@@ -351,29 +360,47 @@ void keyboard(unsigned char key, int x, int y)
 		break;
 	case 'y': ViewAngleY -= 5;
 		radians = (GLfloat)(ViewAngleY * (GLfloat)(M_PI / 180));
-		eye[cZ] = (GLfloat)(2.0) * cos(radians);
-		eye[cX] = (GLfloat)(2.0) * sin(radians);
+		eye[cZ] = (GLfloat)(.1) * cos(radians);
+		eye[cX] = (GLfloat)(.1) * sin(radians);
 		up[cY] = 1.0;
 		break;
 	case 'z': ViewAngleZ -= 5;
 		radians = (GLfloat)(ViewAngleZ * (GLfloat)(M_PI / 180));
-		eye[cX] = (GLfloat)(2.0) * sin(radians);
-		eye[cY] = (GLfloat)(2.0) * cos(radians);
+		eye[cX] = (GLfloat)(.1) * sin(radians);
+		eye[cY] = (GLfloat)(.1) * cos(radians);
 		break;
 
 	case 'L': 
-		ViewAngleZ += 20;
+		ViewAngleZ += 10.0;
+		if (ViewAngleZ <= 0.0) ViewAngleZ = 360.0;
+
 		radians = (GLfloat)(ViewAngleZ * (GLfloat)(M_PI / 180));
-		eye[cX] = ManPosX+(GLfloat)(.1) * sin(radians);
-		eye[cY] = ManPosY+ (GLfloat)(-.1) * cos(radians);
-		center[cX] = ManPosX; center[cY] = ManPosY;
+		center[cX] = ManPosX+(GLfloat)(.1) * sin(radians);
+		center[cY] = ManPosY+ (GLfloat)(.1) * cos(radians);
+		eye[cX] = ManPosX; eye[cY] = ManPosY;
 		/*
 		eye[cX] = 0.7; eye[cY] = -0.6; eye[cZ] = 0.033;
 		center[cX] = 0.7; center[cY] = -0.5; center[cZ] = 0.033;
 		up[cX] = 0; up[cY] = 0; up[cZ] = 1;
 		*/
+		printf("eX=%.3f eY=%.3f eZ=%.3f cX=%.3f cY=%.3f cZ=%.3f A=%.1F\n", eye[cX], eye[cY], eye[cZ], center[cX], center[cY], center[cZ], ViewAngleZ);
 		break;
-	case 'l': eye[cX] += moveStep; break; center[cX] += moveStep; break;
+	case 'l': 
+		ViewAngleZ -= 10.0;
+		if (ViewAngleZ >= 360.0) ViewAngleZ = 0;
+
+		radians = (GLfloat)(ViewAngleZ * (GLfloat)(M_PI / 180));
+		center[cX] = ManPosX + (GLfloat)(.1) * sin(radians);
+		center[cY] = ManPosY + (GLfloat)(.1) * cos(radians);
+		eye[cX] = ManPosX; eye[cY] = ManPosY;
+		/*
+		eye[cX] = 0.7; eye[cY] = -0.6; eye[cZ] = 0.033;
+		center[cX] = 0.7; center[cY] = -0.5; center[cZ] = 0.033;
+		up[cX] = 0; up[cY] = 0; up[cZ] = 1;
+		*/
+		printf("eX=%.3f eY=%.3f eZ=%.3f cX=%.3f cY=%.3f cZ=%.3f A=%.1F\n", eye[cX], eye[cY], eye[cZ], center[cX], center[cY], center[cZ], ViewAngleZ);
+		break;
+		eye[cX] += moveStep; break; center[cX] += moveStep; break;
 	case 'J': case 'j': eye[cX] -= moveStep; center[cX] -= moveStep; break;
 	case 'I': case 'i': eye[cY] += moveStep; center[cY] += moveStep; break;
 	case 'K': case 'k': eye[cY] -= moveStep; center[cY] -= moveStep; break;
@@ -408,14 +435,20 @@ void keyboard(unsigned char key, int x, int y)
 	case 'W': printf("Wireframe mode");  break;
 	case '0':
 		ViewAngleX = 0; ViewAngleY = 0; ViewAngleZ = 0;
-		eye[cX] = ManPosX; eye[cY] = ManPosY -0.1; eye[cZ] = 0.033;
-		center[cX] = ManPosX; center[cY] = ManPosY; center[cZ] = 0.033;
-		up[cX] = 0; up[cY] = 0; up[cZ] = 1;
+		eye[cX] = ManPosX; 
+		eye[cY] = ManPosY ; 
+		eye[cZ] = 0.033;
+		center[cX] = ManPosX;
+		center[cY] = ManPosY + .1; 
+		center[cZ] = 0.033;
+		up[cX] = 0; 
+		up[cY] = 0; 
+		up[cZ] = 1;
 		orthoLeft = .4;
 		orthoRight = .6;
 		orthoBottom = -.1;
 		orthoTop = .1;
-		orthoNear = -1.5;
+		orthoNear = -.033;
 		orthoFar = 1.5;
 
 /*GLdouble eye[3] = { 0.5,0.5,2.0 };
