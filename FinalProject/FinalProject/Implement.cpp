@@ -51,6 +51,7 @@ GLfloat b_diffuse_light[] = { 0.0, 0.0, 1.0, 1.0 };
 
 int bTopView = 1;
 GLfloat ManPosX = 0, ManPosY = 0;
+int ManGridX=11, ManGridY = 0;
 
 void init_window(int argc, char** argv)
 {
@@ -125,8 +126,7 @@ void change_view()
 {
 	//glMatrixMode(GL_PROJECTION);
 	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-	
+
 	gluLookAt(eye[cX], eye[cY], eye[cZ], center[cX], center[cY], center[cZ], up[cX], up[cY], up[cZ]);
 }
 
@@ -177,7 +177,7 @@ void display(void)
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	change_view();
 	drawBorder(0, 0, 600, 400);
-	mazeFloor();
+	mazeFloor(ManPosX, ManPosY, ViewAngleX, ViewAngleY, ViewAngleZ);
 	//glLoadIdentity();
 	glPushMatrix();
 
@@ -197,7 +197,7 @@ void display(void)
 	glEnd();
 
 	//Status info
-	glLoadIdentity();
+	//glLoadIdentity();
 	sprintf_s(sResult, "eyeX=%0.3f eyeY=%0.3f eyeZ=%0.3f \nAtx=%0.3f Aty=%0.3f AtZ=%0.3f \nupX=%0.1f upY=%0.1f upZ=%0.1f", (float)eye[cX], (float)eye[cY], (float)eye[cZ], (float)center[cX], (float)center[cY], (float)center[cZ], (float)up[cX], (float)up[cY], (float)up[cZ]);
 	drawString(-.50, 1.0, 0, sResult);
 	sprintf_s(sResult, "Light Position: X=%0.1f Y=%0.1f Z=%0.1f (Numeric Keypad 2-8)  Plus u,v,w,r,g,b,d,f,p,i", (float)light_position[cX], (float)light_position[cY], (float)light_position[cZ]);
@@ -235,15 +235,24 @@ void specialKeyboardKeys(int key, int x, int y) {
 	{
 	case GLUT_KEY_UP:
 		printf("Arrow Up\n");
+
+		ManGridY += 1;
+		moveToGridPos(ManGridX, ManGridY);
 		break;
 	case GLUT_KEY_DOWN:
 		printf("Arrow Down\n");
+		ManGridY -= 1;
+		moveToGridPos(ManGridX, ManGridY);
 		break;
 	case GLUT_KEY_LEFT:
-		printf("Arrow Left\n");
+		printf("Arrow Left %.1f\n", ViewAngleZ);
+		ManGridX -= 1;
+		moveToGridPos(ManGridX, ManGridY);
 		break;
 	case GLUT_KEY_RIGHT:
-		printf("Arrow Right\n");
+		printf("Arrow Right %.1f\n",ViewAngleZ);
+		ManGridX += 1;
+		moveToGridPos(ManGridX, ManGridY);
 		break;
 	case GLUT_KEY_F1:
 		printf("F1\n");
@@ -308,13 +317,13 @@ void keyboard(unsigned char key, int x, int y)
 	{
 	case 'X': ViewAngleX += 5;
 		radians = (GLfloat)(ViewAngleX * (GLfloat)(M_PI / 180));
-		eye[cZ] = (GLfloat)(2.0) * cos(radians);
-		eye[cY] = (GLfloat)(2.0) * sin(radians);
+		eye[cZ] = (GLfloat)(0.1) * cos(radians);
+		eye[cY] = (GLfloat)(0.1) * sin(radians);
 		if (eye[cZ] < 0)
 			up[cY] = -1.0;
 		if (eye[cZ] >= 0)
 			up[cY] = 1.0;
-		orthoLeft = ManPosX - moveStep;
+/*		orthoLeft = ManPosX - moveStep;
 		orthoRight = ManPosX + moveStep;
 		orthoBottom = ManPosY - moveStep;
 		orthoTop = ManPosY + moveStep;
@@ -329,6 +338,7 @@ void keyboard(unsigned char key, int x, int y)
 		up[cY] = 0;
 		up[cZ] = 1;
 		reshape(viewportWidth, viewportHeight);
+		*/
 		break;
 	case 'Y':
 		//glPushMatrix();
@@ -402,8 +412,8 @@ void keyboard(unsigned char key, int x, int y)
 		break;
 		eye[cX] += moveStep; break; center[cX] += moveStep; break;
 	case 'J': case 'j': eye[cX] -= moveStep; center[cX] -= moveStep; break;
-	case 'I': case 'i': eye[cY] += moveStep; center[cY] += moveStep; break;
-	case 'K': case 'k': eye[cY] -= moveStep; center[cY] -= moveStep; break;
+	case 'I': case 'i': ManPosY += moveStep; break; // eye[cY] += moveStep; center[cY] += moveStep; break;
+	case 'K': case 'k': ManPosY -= moveStep; break; // eye[cY] -= moveStep; center[cY] -= moveStep; break;
 	case 'U': case 'u': eye[cZ] += moveStep; center[cZ] += moveStep; break;
 	case 'V': case 'v': eye[cZ] -= moveStep; center[cZ] -= moveStep; break;
 	case '-':
@@ -434,20 +444,20 @@ void keyboard(unsigned char key, int x, int y)
 		break;
 	case 'W': printf("Wireframe mode");  break;
 	case '0':
-		ViewAngleX = 0; ViewAngleY = 0; ViewAngleZ = 0;
+		ViewAngleX = -90; ViewAngleY = 0; ViewAngleZ = 0;
 		eye[cX] = ManPosX; 
 		eye[cY] = ManPosY ; 
-		eye[cZ] = 0.033;
+		eye[cZ] = 0;
 		center[cX] = ManPosX;
 		center[cY] = ManPosY + .1; 
-		center[cZ] = 0.033;
+		center[cZ] = 0.066;
 		up[cX] = 0; 
-		up[cY] = 0; 
-		up[cZ] = 1;
-		orthoLeft = .4;
-		orthoRight = .6;
-		orthoBottom = -.1;
-		orthoTop = .1;
+		up[cY] = 1; 
+		up[cZ] = 0;
+		orthoLeft = ManPosX-.1;
+		orthoRight = ManPosX+.1;
+		orthoBottom = ManPosY -.1;
+		orthoTop = ManPosY+.1;
 		orthoNear = -.033;
 		orthoFar = 1.5;
 
@@ -456,7 +466,6 @@ void keyboard(unsigned char key, int x, int y)
 GLdouble center[3] = { 0.5,0.50,0 };
 GLdouble up[3] = { 0,1,0 };
 */
-		ViewAngleX = 0., ViewAngleY = 0, ViewAngleZ = 0;
 		bTopView = 1;
 		light_position[cX] = -2.0, light_position[cY] = -2.0, light_position[cZ] = 0;
 		reshape(viewportWidth, viewportHeight);

@@ -14,6 +14,7 @@ int mazeWidth = 15;
 int mazeHeight = 10;
 int row = 0, column = 0;
 int blockNumber = 0;
+int GridPosX = 11, GridPosY = 0;
 
 /* Left, back, bottom*/
 /*Right, Front, top*/
@@ -92,8 +93,8 @@ void drawWall() {
 void drawMan() {
 	GLfloat	increment;
 	increment = sqBorder + sqSize + sqBorder;
-	GLfloat positionX = increment * 11 - (increment / 2);
-	GLfloat positionY = - (increment / 2);
+	GLfloat positionX = increment * GridPosX - (increment / 2);
+	GLfloat positionY = increment * GridPosY - (increment / 2);
 	//ManPosX = positionX;
 	//ManPosY = positionY;
 
@@ -154,7 +155,7 @@ void drawBorder(int x, int y, int viewportWidth, int viewportHeight) {
 	glPopMatrix(); glMatrixMode(GL_MODELVIEW); glPopMatrix();
 }
 
-void mazeFloor() {
+void mazeFloor(GLfloat ManPosX, GLfloat ManPosY, GLfloat ViewAngleX, GLfloat ViewAngleY, GLfloat ViewAngleZ) {
 	char X_Label[] = "X-Axis";
 	char Y_Label[] = "Y-Axis";
 	char Z_Label[] = "Z-Axis";
@@ -182,6 +183,13 @@ void mazeFloor() {
 	glPopMatrix();
 	glTranslatef(0.50, 0.5, 0.0);
 	
+	glLoadIdentity();
+	glTranslatef(ManPosX, ManPosY, 0);
+	glRotatef(ViewAngleX, 1.0f, 0.0f, 0.0f);
+	glRotatef(ViewAngleY, 0.0f, 1.0f, 0.0f);
+	glRotatef(ViewAngleZ, 0.0f, 0.0f, 1.0f);
+	glTranslatef(-ManPosX, -ManPosY, 0);
+
 	drawMan();
 
 	GLfloat xll, xlr, xul, xur;
@@ -248,4 +256,8 @@ void mazeFloor() {
 			}
 		}
 	}
+}
+void moveToGridPos(int x, int y) {
+	GridPosX = x;
+	GridPosY = y;
 }

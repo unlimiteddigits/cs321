@@ -19,7 +19,7 @@
 #define ORTHOFARSTART 1.5;
 #define ORTHONEARSTART -1.5;
 
-void mazeFloor();
+void mazeFloor(GLfloat ManPosX, GLfloat ManPosY, GLfloat ViewAngleX, GLfloat ViewAngleY, GLfloat ViewAngleZ);
 void other_init();
 void display(void);
 void reshape(int w, int h);
@@ -29,3 +29,4 @@ void DoBackgroundStuff();
 void specialKeyboardKeys(int key, int x, int y);
 void drawBorder(int windowWidth, int windowHeight, int viewportWidth, int viewportHeight);
 void updateManLocation(GLfloat x, GLfloat y);
+void moveToGridPos(int x, int y);
