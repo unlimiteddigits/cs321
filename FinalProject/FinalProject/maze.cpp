@@ -184,11 +184,11 @@ void mazeFloor(GLfloat ManPosX, GLfloat ManPosY, GLfloat ViewAngleX, GLfloat Vie
 	glTranslatef(0.50, 0.5, 0.0);
 	
 	glLoadIdentity();
-	glTranslatef(ManPosX, ManPosY, 0);
+	//glTranslatef(-ManPosX, -ManPosY, 0);
 	glRotatef(ViewAngleX, 1.0f, 0.0f, 0.0f);
 	glRotatef(ViewAngleY, 0.0f, 1.0f, 0.0f);
 	glRotatef(ViewAngleZ, 0.0f, 0.0f, 1.0f);
-	glTranslatef(-ManPosX, -ManPosY, 0);
+	glTranslatef(-ManPosX,-ManPosY, 0);
 
 	drawMan();
 
@@ -258,6 +258,12 @@ void mazeFloor(GLfloat ManPosX, GLfloat ManPosY, GLfloat ViewAngleX, GLfloat Vie
 	}
 }
 void moveToGridPos(int x, int y) {
+	GLfloat	increment;
+	increment = sqBorder + sqSize + sqBorder;
+	GLfloat positionX = increment * x - (increment / 2);
+	GLfloat positionY = increment * y - (increment / 2);
+
 	GridPosX = x;
 	GridPosY = y;
+	updateManLocation(positionX, positionY);
 }

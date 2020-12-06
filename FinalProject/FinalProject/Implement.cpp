@@ -75,6 +75,7 @@ void other_init()
 	glEnable(GL_LIGHTING);
 	glEnable(GL_DEPTH_TEST);
 	glMatrixMode(GL_MODELVIEW);         // Get Back to the Modelview
+	moveToGridPos(ManGridX, ManGridY);
 }
 
 void DoBackgroundStuff() {
@@ -103,11 +104,6 @@ void DoBackgroundStuff() {
 				up[cY] = 1.0;
 			display();
 		}
-		// like '+'/'-'
-		orthoLeft = ManPosX-moveStep;
-		orthoRight = ManPosX+moveStep;
-		orthoBottom = ManPosY-moveStep;
-		orthoTop = ManPosY+moveStep;
 		 
 		eye[cX] = ManPosX;
 		eye[cY] = ManPosY-.1;
@@ -238,21 +234,43 @@ void specialKeyboardKeys(int key, int x, int y) {
 
 		ManGridY += 1;
 		moveToGridPos(ManGridX, ManGridY);
+		eye[cX] = ManPosX;
+		eye[cY] = ManPosY;
+		center[cX] = ManPosX;
+		center[cY] = ManPosY + .1;
+		up[cY] = 1;
+		ViewAngleZ = 0;
 		break;
 	case GLUT_KEY_DOWN:
 		printf("Arrow Down\n");
 		ManGridY -= 1;
 		moveToGridPos(ManGridX, ManGridY);
+		eye[cX] = ManPosX;
+		eye[cY] = ManPosY;
+		center[cX] = ManPosX;
+		center[cY] = ManPosY-.1;
+		up[cY] = 1;
+		ViewAngleZ = 180;
 		break;
 	case GLUT_KEY_LEFT:
 		printf("Arrow Left %.1f\n", ViewAngleZ);
 		ManGridX -= 1;
 		moveToGridPos(ManGridX, ManGridY);
+		eye[cX] = ManPosX;
+		eye[cY] = ManPosY;
+		center[cX] = ManPosX - .1;
+		center[cY] = ManPosY;
+		ViewAngleZ = -90;
 		break;
 	case GLUT_KEY_RIGHT:
 		printf("Arrow Right %.1f\n",ViewAngleZ);
 		ManGridX += 1;
 		moveToGridPos(ManGridX, ManGridY);
+		eye[cX] = ManPosX;
+		eye[cY] = ManPosY;
+		center[cX] = ManPosX + .1;
+		center[cY] = ManPosY;
+		ViewAngleZ = 90;
 		break;
 	case GLUT_KEY_F1:
 		printf("F1\n");
@@ -306,6 +324,8 @@ void specialKeyboardKeys(int key, int x, int y) {
 		printf("Insert\n");
 		break;
 	}
+
+	display();
 }
 
 void keyboard(unsigned char key, int x, int y)
@@ -445,27 +465,49 @@ void keyboard(unsigned char key, int x, int y)
 	case 'W': printf("Wireframe mode");  break;
 	case '0':
 		ViewAngleX = -90; ViewAngleY = 0; ViewAngleZ = 0;
-		eye[cX] = ManPosX; 
-		eye[cY] = ManPosY ; 
+		eye[cX] = ManPosX;
+		eye[cY] = ManPosY;
 		eye[cZ] = 0;
 		center[cX] = ManPosX;
-		center[cY] = ManPosY + .1; 
+		center[cY] = ManPosY + .1;
 		center[cZ] = 0.066;
-		up[cX] = 0; 
-		up[cY] = 1; 
+		up[cX] = 0;
+		up[cY] = 1;
 		up[cZ] = 0;
-		orthoLeft = ManPosX-.1;
-		orthoRight = ManPosX+.1;
-		orthoBottom = ManPosY -.1;
-		orthoTop = ManPosY+.1;
-		orthoNear = -.033;
+		orthoLeft = -.1;
+		orthoRight = .1;
+		orthoBottom = -.1;
+		orthoTop = .1;
+		orthoNear = -.003;
 		orthoFar = 1.5;
-
-/*GLdouble eye[3] = { 0.5,0.5,2.0 };
-//GLdouble eye[3] = { 0.5,-0.5, -0.0 }; // Starting here doesn't
-GLdouble center[3] = { 0.5,0.50,0 };
-GLdouble up[3] = { 0,1,0 };
-*/
+		ManGridX = 11;
+		ManGridY = 0;
+		/*GLdouble eye[3] = { 0.5,0.5,2.0 };
+		//GLdouble eye[3] = { 0.5,-0.5, -0.0 }; // Starting here doesn't
+		GLdouble center[3] = { 0.5,0.50,0 };
+		GLdouble up[3] = { 0,1,0 };
+		*/
+		bTopView = 1;
+		light_position[cX] = -2.0, light_position[cY] = -2.0, light_position[cZ] = 0;
+		reshape(viewportWidth, viewportHeight);
+		break;
+	case 'O':
+		ViewAngleX = 0; ViewAngleY = 0; ViewAngleZ = 0;
+		eye[cX] = .5;
+		eye[cY] = .5;
+		eye[cZ] = 2.0;
+		center[cX] = .5;
+		center[cY] = .5;
+		center[cZ] = 0;
+		up[cX] = 0;
+		up[cY] = 1;
+		up[cZ] = 0;
+		orthoLeft = ORTHOLEFTSTART;
+		orthoRight = ORTHORIGHTSTART;
+		orthoBottom = ORTHOBOTTOMSTART;
+		orthoTop = ORTHOTOPSTART;
+		orthoNear = ORTHONEARSTART;
+		orthoFar = ORTHOFARSTART;
 		bTopView = 1;
 		light_position[cX] = -2.0, light_position[cY] = -2.0, light_position[cZ] = 0;
 		reshape(viewportWidth, viewportHeight);
