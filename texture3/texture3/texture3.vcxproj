@@ -21,8 +21,8 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{594f6ccb-79c6-4791-9518-8b07aec9165b}</ProjectGuid>
-    <RootNamespace>FinalProject</RootNamespace>
+    <ProjectGuid>{5555b8fd-5ea4-4235-abe5-dbe63594b46f}</ProjectGuid>
+    <RootNamespace>texture3</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -139,14 +139,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="FinalProject.cpp" />
-    <ClCompile Include="Implement.cpp">
+    <ClCompile Include="texture3.cpp">
       <ConformanceMode Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ConformanceMode>
     </ClCompile>
-    <ClCompile Include="maze.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="FinalProject.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

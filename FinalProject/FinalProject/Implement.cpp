@@ -1,3 +1,5 @@
+#pragma warning(disable : 4996)
+
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -10,6 +12,8 @@
 
 const int cX = 0, cY = 1, cZ = 2;
 
+static int stencilOn = 1;
+
 GLfloat windowWidth = VIEWSTARTW;
 GLfloat windowHeight = VIEWSTARTH;
 GLfloat viewportWidth = VIEWSTARTW;
@@ -17,9 +21,9 @@ GLfloat viewportHeight = VIEWSTARTH;
 GLfloat viewportXOffset = 0;
 GLfloat viewportYOffset = 0;
 
-GLdouble eye[3] = { 0.5,0.5,2.0 };
+GLdouble eye[3] = { -0.5,0.5,2.0 };
 //GLdouble eye[3] = { 0.5,-0.5, -0.0 }; // Starting here doesn't
-GLdouble center[3] = { 0.5,0.50,0 };
+GLdouble center[3] = { -0.5,0.50,0 };
 GLdouble up[3] = { 0,1,0 };
 
 double ViewAngleX = 0;
@@ -38,6 +42,12 @@ GLfloat orthoNear = ORTHONEARSTART;
 GLfloat orthoFar = ORTHOFARSTART;
 GLfloat moveStep = 0.01;
 
+
+
+GLint TexImgWidth, TexImgHeight, Texmax;
+FILE* infile;
+char dummy[80];
+GLubyte* TexBits; /* Texture pixmap */
 
 GLfloat ambient_light[] = { 0.6f, 0.6f, 0.6f, 1.0f };
 GLfloat diffuse_light[] = { 0.6f, 0.6f, 0.6f, 1.0f };
@@ -66,13 +76,32 @@ void init_window(int argc, char** argv)
 
 void other_init()
 {
+	glutCreateMenu(menu);
+	glutAddMenuEntry("Motion", 3);
+	glutAddMenuEntry("Stencil on", 1);
+	glutAddMenuEntry("Stencil off", 2);
+	glutAttachMenu(GLUT_RIGHT_BUTTON);
+
 	glutIdleFunc(DoBackgroundStuff);    // playing with more functions
 	glClearColor(0.0, 0.0, 0.50, 1.0);
 	glShadeModel(GL_SMOOTH);
+	glMatrixMode(GL_MODELVIEW);
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+
+	read_file("SmallTile90.ppm");
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, TexImgWidth, TexImgHeight, 0, GL_RGB,
+		GL_UNSIGNED_BYTE, TexBits);
+
+
 	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, ambient_light);
 	glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE,
 		diffuse_light);
 	glEnable(GL_LIGHTING);
+	glEnable(GL_TEXTURE_2D);
 	glEnable(GL_DEPTH_TEST);
 	glMatrixMode(GL_MODELVIEW);         // Get Back to the Modelview
 	moveToGridPos(ManGridX, ManGridY);
@@ -169,10 +198,12 @@ void DrawAxisLines()
 void display(void)
 {
 	char sResult[200];
-
+	
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	change_view();
 	drawBorder(0, 0, 600, 400);
+
+
 	mazeFloor(ManPosX, ManPosY, ViewAngleX, ViewAngleY, ViewAngleZ);
 	//glLoadIdentity();
 	glPushMatrix();
@@ -224,6 +255,50 @@ void reshape(int w, int h)
 	printf("oL=%.3f oR=%.3f oB=%.3f oT=%.3f oN=%.3f oF=%.3f w=%d h=%d\n", orthoLeft, orthoRight, orthoBottom, orthoTop, orthoNear, orthoFar,w, h);
 }
 
+
+int count = 0;
+
+void
+animation(void)
+{
+	/* animate the cone */
+
+	ViewAngleX += 2.0;
+	ViewAngleY -= 1.0;
+	ViewAngleZ += 2.0;
+	if (ViewAngleX >= 360)
+		ViewAngleX = 0.0;
+	if (ViewAngleY <= -360)
+		ViewAngleY = 0.0;
+	if (ViewAngleZ >= 360)
+		ViewAngleZ = 0.0;
+	glutPostRedisplay();
+	count++;
+	if (count >= 6000)
+		glutIdleFunc(NULL);
+}
+
+
+void
+menu(int choice)
+{
+	switch (choice) {
+	case 3:
+		count = 0;
+		glutIdleFunc(animation);
+		break;
+	case 2:
+		stencilOn = 0;
+		glutSetWindowTitle("Stencil Disabled");
+		glutPostRedisplay();
+		break;
+	case 1:
+		stencilOn = 1;
+		glutSetWindowTitle("Stencil Enabled");
+		glutPostRedisplay();
+		break;
+	}
+}
 
 void specialKeyboardKeys(int key, int x, int y) {
 	printf("Speacial Key Pressed = %d  => ", key);
@@ -462,8 +537,13 @@ void keyboard(unsigned char key, int x, int y)
 		}
 		reshape(viewportWidth, viewportHeight);
 		break;
-	case 'W': printf("Wireframe mode");  break;
+	case 'W': printf("Wireframe mode"); 
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		SetWallTextureOff();
+		break;
 	case '0':
+
+		glPolygonMode(GL_FRONT, GL_FILL);
 		ViewAngleX = -90; ViewAngleY = 0; ViewAngleZ = 0;
 		eye[cX] = ManPosX;
 		eye[cY] = ManPosY;
@@ -478,7 +558,7 @@ void keyboard(unsigned char key, int x, int y)
 		orthoRight = .1;
 		orthoBottom = -.1;
 		orthoTop = .1;
-		orthoNear = -.003;
+		orthoNear = -.013;
 		orthoFar = 1.5;
 		ManGridX = 11;
 		ManGridY = 0;
@@ -489,9 +569,19 @@ void keyboard(unsigned char key, int x, int y)
 		*/
 		bTopView = 1;
 		light_position[cX] = -2.0, light_position[cY] = -2.0, light_position[cZ] = 0;
+		SetWallTextureOff();
 		reshape(viewportWidth, viewportHeight);
 		break;
+	case 'T': case 't':
+		glShadeModel(GL_FLAT);
+		break;
+	case 'M': case 'm':
+		glShadeModel(GL_SMOOTH);
+		break;
 	case 'O':
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		glShadeModel(GL_SMOOTH);
+		SetWallTextureOn();
 		ViewAngleX = 0; ViewAngleY = 0; ViewAngleZ = 0;
 		eye[cX] = .5;
 		eye[cY] = .5;
@@ -569,4 +659,32 @@ void keyboard(unsigned char key, int x, int y)
 void updateManLocation(GLfloat x, GLfloat y) {
 	ManPosX = x;
 	ManPosY = y;
+}
+
+void read_file(char* argv)
+{
+	int i, temp;
+	GLubyte* sp, c;
+
+	if ((infile = fopen(argv, "rb+")) == NULL)
+	{
+		printf("File open error\n");
+		exit(1);
+	}
+	do { temp = fgetc(infile); } while (temp != '\n');
+	do { temp = fgetc(infile); } while (temp != '\n');		fscanf(infile, "%s", dummy);	TexImgWidth = atoi(dummy);
+	fscanf(infile, "%c", &c);
+	fscanf(infile, "%s", dummy);	TexImgHeight = atoi(dummy);
+	fscanf(infile, "%c", &c);
+	fscanf(infile, "%s", dummy);	Texmax = atoi(dummy);
+	fscanf(infile, "%c", &c);									// return after max
+
+	if (TexBits != 0) free(TexBits);
+	TexBits = (GLubyte*)calloc(TexImgWidth * TexImgHeight * 3, sizeof(GLubyte));
+	for (i = TexImgHeight - 1; i >= 0; i--)
+	{
+		sp = TexBits + i * TexImgWidth * 3;
+		fread(sp, sizeof(GLubyte), TexImgWidth * 3, infile);
+	}
+	fclose(infile);
 }

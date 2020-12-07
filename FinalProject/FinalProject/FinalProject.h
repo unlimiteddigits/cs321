@@ -13,9 +13,9 @@
 #endif
 
 #define ORTHOLEFTSTART -.5;
-#define ORTHORIGHTSTART 1.5;
+#define ORTHORIGHTSTART 0.5;
 #define ORTHOBOTTOMSTART -.5;
-#define ORTHOTOPSTART 1.5;
+#define ORTHOTOPSTART 0.5;
 #define ORTHOFARSTART 1.5;
 #define ORTHONEARSTART -1.5;
 
@@ -30,3 +30,7 @@ void specialKeyboardKeys(int key, int x, int y);
 void drawBorder(int windowWidth, int windowHeight, int viewportWidth, int viewportHeight);
 void updateManLocation(GLfloat x, GLfloat y);
 void moveToGridPos(int x, int y);
+void read_file(char* argv);
+void menu(int choice);
+void SetWallTextureOn();
+void SetWallTextureOff();
