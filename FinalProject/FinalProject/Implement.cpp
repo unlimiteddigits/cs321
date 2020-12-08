@@ -20,6 +20,7 @@ GLfloat viewportWidth = VIEWSTARTW;
 GLfloat viewportHeight = VIEWSTARTH;
 GLfloat viewportXOffset = 0;
 GLfloat viewportYOffset = 0;
+int bPerspectiveMode = 0;
 
 GLdouble eye[3] = { -0.5,0.5,2.0 };
 //GLdouble eye[3] = { 0.5,-0.5, -0.0 }; // Starting here doesn't
@@ -44,22 +45,42 @@ GLfloat moveStep = 0.01;
 
 
 
+
 GLint TexImgWidth, TexImgHeight, Texmax;
 FILE* infile;
 char dummy[80];
 GLubyte* TexBits; /* Texture pixmap */
 
-GLfloat ambient_light[] = { 0.6f, 0.6f, 0.6f, 1.0f };
-GLfloat diffuse_light[] = { 0.6f, 0.6f, 0.6f, 1.0f };
+GLfloat emission_light[] = { 0.5, 0.5, 1.0, 1.0 };
 
-GLfloat light_position[] = { -2.0, -2.0, 2.0, 1.0 };
-GLfloat light_directional[] = { -2.0, 1.0, 2.0, 0.0 };
+GLfloat light_directional[] = { -2.0, 1.0, 2.0, 0.0 };  //shader 8 includes angle
 
 GLfloat r_diffuse_light[] = { 1.0, 0.0, 0.0, 1.0 };
 GLfloat g_diffuse_light[] = { 0.0, 1.0, 0.0, 1.0 };
 GLfloat b_diffuse_light[] = { 0.0, 0.0, 1.0, 1.0 };
 
-int bTopView = 1;
+// Setting for GL_LIGHT0
+GLfloat  ambient_light[] = { 0.3f, 0.3f, 0.3f, 1.0f };
+GLfloat  diffuse_light[] = { 0.6f, 0.6f, 0.6f, 1.0f };
+GLfloat  specular_light[] = { 0.6f, 0.6f, 0.6f, 1.0f };
+GLfloat  specular_property[] = { 0.6f, 0.6f, 0.6f, 1.0f };
+GLfloat  light_position[] = { 0.0, 0.0, 5.0, 1.0 };
+GLint	 shininess = 40;
+
+// Setting for GL_LIGHT1
+// Green Spotlight with narrow angle
+GLfloat diffuse_light1[] = { 0.2, 0.4, 0.9, 1.0 };
+GLfloat light_position1[] = { -0.3, 5.0, -0.3, 1.0 };
+GLfloat spot_direction1[] = { -0.3, -2.0, -0.3 };
+
+// Setting for GL_LIGHT2
+// Red Spotlight with wide angle
+GLfloat diffuse_light2[] = { 1.0, 0.2, 0.6, 1.0 };
+GLfloat light_position2[] = { 0.3, -0.5, 4.0, 1.0 };
+GLfloat spot_direction2[] = { 0.3, -0.5, -2.0 };
+
+
+int bTopView = -1;
 GLfloat ManPosX = 0, ManPosY = 0;
 int ManGridX=11, ManGridY = 0;
 
@@ -77,16 +98,18 @@ void init_window(int argc, char** argv)
 void other_init()
 {
 	glutCreateMenu(menu);
-	glutAddMenuEntry("Motion", 3);
-	glutAddMenuEntry("Stencil on", 1);
-	glutAddMenuEntry("Stencil off", 2);
+	glutAddMenuEntry("Motion", 1);
+	glutAddMenuEntry("WireFrame", 2);
+	glutAddMenuEntry("Ortho Mode", 3);
+	glutAddMenuEntry("Perspective Mode", 4);
+	glutAddMenuEntry("Top View", 5);
 	glutAttachMenu(GLUT_RIGHT_BUTTON);
 
 	glutIdleFunc(DoBackgroundStuff);    // playing with more functions
 	glClearColor(0.0, 0.0, 0.50, 1.0);
 	glShadeModel(GL_SMOOTH);
 	glMatrixMode(GL_MODELVIEW);
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -98,8 +121,7 @@ void other_init()
 
 
 	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, ambient_light);
-	glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE,
-		diffuse_light);
+	glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE,	diffuse_light);
 	glEnable(GL_LIGHTING);
 	glEnable(GL_TEXTURE_2D);
 	glEnable(GL_DEPTH_TEST);
@@ -118,15 +140,15 @@ void DoBackgroundStuff() {
 //	ManPosX = positionX;
 //	ManPosY = positionY;
 
-	if (bTopView==2)     // 
+	if (bTopView==-1)     // 
 	{
 		//printf("Doing idle Stuff...\n"); 
 		bTopView = 0;
 		for (double i = 0; i >= -90.0; i=i-5) {
 			ViewAngleX = i;
 			radians = (GLfloat)(ViewAngleX * (GLfloat)(M_PI / 180));
-			eye[cZ] = (GLfloat)(0.10) * cos(radians);
-			eye[cY] = (GLfloat)(0.10) * sin(radians);
+			eye[cZ] = (GLfloat)(0.5) * cos(radians);
+			eye[cY] = (GLfloat)(0.5) * sin(radians);
 			if (eye[cZ] < 0)
 				up[cY] = -1.0;
 			if (eye[cZ] >= 0)
@@ -136,10 +158,11 @@ void DoBackgroundStuff() {
 		 
 		eye[cX] = ManPosX;
 		eye[cY] = ManPosY-.1;
-		eye[cZ] = .066;
+		eye[cZ] = .366;
 		center[cX] = ManPosX;
 		center[cY] = ManPosY;
-		center[cZ] = .066;
+		center[cZ] = .366;
+		bPerspectiveMode = 1;
 		reshape(viewportWidth, viewportHeight);
 		
 		//viewportWidth
@@ -237,22 +260,33 @@ void display(void)
 
 void reshape(int w, int h)
 {
-	glViewport(0, 0, w/3, h);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 
-	if (w >= h)
-		glOrtho(orthoLeft, orthoRight, 
-			orthoBottom * (GLfloat)h / (GLfloat)w, orthoTop * (GLfloat)h / (GLfloat)w,
-			orthoNear, orthoFar *2 );
-	else
-		glOrtho(orthoLeft * (GLfloat)w / (GLfloat)h, orthoRight * (GLfloat)w / (GLfloat)h,
-			orthoBottom, orthoTop, orthoNear, orthoFar * 2);
+	if (bPerspectiveMode) {
+		//glFrustum(orthoLeft, orthoRight, orthoBottom, orthoTop, orthoNear, orthoFar);
+		gluPerspective(105, 1.0f, .005, 1.5);
+		glMatrixMode(GL_MODELVIEW);
+		//glLoadIdentity();
+		glViewport(w / 2, h / 2, w / 2, h / 2);
+		//gluLookAt(-2500.0f, 2500.0f, 2500.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
+	}
+	else {
+		glViewport(0, 0, w / 3, h);
+		if (w >= h)
+			glOrtho(orthoLeft, orthoRight,
+				orthoBottom * (GLfloat)h / (GLfloat)w, orthoTop * (GLfloat)h / (GLfloat)w,
+				orthoNear, orthoFar * 2);
+		else
+			glOrtho(orthoLeft * (GLfloat)w / (GLfloat)h, orthoRight * (GLfloat)w / (GLfloat)h,
+				orthoBottom, orthoTop, orthoNear, orthoFar * 2);
+	}
 	//glOrtho(-.010 * (GLfloat)w / (GLfloat)h, 1.01 * (GLfloat)w / (GLfloat)h, -0.01, 1.01, 1, -1);
 	//glOrtho(0, 1, 0, 1, 1, 0);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
-	printf("oL=%.3f oR=%.3f oB=%.3f oT=%.3f oN=%.3f oF=%.3f w=%d h=%d\n", orthoLeft, orthoRight, orthoBottom, orthoTop, orthoNear, orthoFar,w, h);
+	printf("oL=%.3f oR=%.3f oB=%.3f oT=%.3f oN=%.3f oF=%.3f w=%d h=%d\n", orthoLeft, orthoRight, orthoBottom, orthoTop, orthoNear, orthoFar, w, h);
+	printf("eX=%.3f eY=%.3f eZ=%.3f cX=%.3f cY=%.3f cZ=%.3f uX=%.1f uY=%.1f uZ=%.1f\n", eye[cX], eye[cY], eye[cZ], center[cX], center[cY], center[cZ], up[cX], up[cZ]);
 }
 
 
@@ -262,6 +296,9 @@ void
 animation(void)
 {
 	/* animate the cone */
+	GLfloat Prev_X = ViewAngleX;
+	GLfloat Prev_Y = ViewAngleY;
+	GLfloat Prev_Z = ViewAngleZ;
 
 	ViewAngleX += 2.0;
 	ViewAngleY -= 1.0;
@@ -274,8 +311,13 @@ animation(void)
 		ViewAngleZ = 0.0;
 	glutPostRedisplay();
 	count++;
-	if (count >= 6000)
+	if (count >= 600) {
+		ViewAngleX =Prev_X;
+		ViewAngleY = Prev_Y;
+		ViewAngleZ = Prev_Z;
+		glutPostRedisplay();
 		glutIdleFunc(NULL);
+	}
 }
 
 
@@ -283,18 +325,58 @@ void
 menu(int choice)
 {
 	switch (choice) {
-	case 3:
+	case 1:
 		count = 0;
 		glutIdleFunc(animation);
 		break;
 	case 2:
-		stencilOn = 0;
-		glutSetWindowTitle("Stencil Disabled");
+		glutSetWindowTitle("WireFrame");
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		SetWallTextureOff();
 		glutPostRedisplay();
 		break;
-	case 1:
-		stencilOn = 1;
-		glutSetWindowTitle("Stencil Enabled");
+	case 3:
+		SetWallTextureOn();
+		glPolygonMode(GL_FRONT, GL_FILL);
+		glutSetWindowTitle("Ortho Mode");
+		SetOrthoGroundView();
+		glutPostRedisplay();
+		break;
+	case 4:
+		SetWallTextureOn();
+		glPolygonMode(GL_FRONT, GL_FILL);
+		SetOrthoGroundView();
+		bTopView = 0;
+		bPerspectiveMode = 1;
+		reshape(viewportWidth, viewportHeight);
+		glutSetWindowTitle("Perspective Mode");
+		glutPostRedisplay();
+		break;
+	case 5:
+		bPerspectiveMode = 0;
+		glutSetWindowTitle("Top View");
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		glShadeModel(GL_SMOOTH);
+		SetWallTextureOn();
+		ViewAngleX = 0; ViewAngleY = 0; ViewAngleZ = 0;
+		eye[cX] = .5;
+		eye[cY] = .5;
+		eye[cZ] = 2.0;
+		center[cX] = .5;
+		center[cY] = .5;
+		center[cZ] = 2.0;
+		up[cX] = 0;
+		up[cY] = 1;
+		up[cZ] = 0;
+		orthoLeft = ORTHOLEFTSTART;
+		orthoRight = ORTHORIGHTSTART;
+		orthoBottom = ORTHOBOTTOMSTART;
+		orthoTop = ORTHOTOPSTART;
+		orthoNear = ORTHONEARSTART;
+		orthoFar = ORTHOFARSTART;
+		bTopView = 1;
+		light_position[cX] = -2.0, light_position[cY] = -2.0, light_position[cZ] = 0;
+		reshape(viewportWidth, viewportHeight);
 		glutPostRedisplay();
 		break;
 	}
@@ -311,8 +393,9 @@ void specialKeyboardKeys(int key, int x, int y) {
 		moveToGridPos(ManGridX, ManGridY);
 		eye[cX] = ManPosX;
 		eye[cY] = ManPosY;
+		eye[cZ] = 1;
 		center[cX] = ManPosX;
-		center[cY] = ManPosY + .1;
+		center[cY] = ManPosY+.1;
 		up[cY] = 1;
 		ViewAngleZ = 0;
 		break;
@@ -322,10 +405,11 @@ void specialKeyboardKeys(int key, int x, int y) {
 		moveToGridPos(ManGridX, ManGridY);
 		eye[cX] = ManPosX;
 		eye[cY] = ManPosY;
+		eye[cZ] = 1;
 		center[cX] = ManPosX;
 		center[cY] = ManPosY-.1;
 		up[cY] = 1;
-		ViewAngleZ = 180;
+		if (bTopView!=1) ViewAngleZ = 180;
 		break;
 	case GLUT_KEY_LEFT:
 		printf("Arrow Left %.1f\n", ViewAngleZ);
@@ -333,9 +417,10 @@ void specialKeyboardKeys(int key, int x, int y) {
 		moveToGridPos(ManGridX, ManGridY);
 		eye[cX] = ManPosX;
 		eye[cY] = ManPosY;
+		eye[cZ] = 1;
 		center[cX] = ManPosX - .1;
 		center[cY] = ManPosY;
-		ViewAngleZ = -90;
+		if (bTopView != 1) ViewAngleZ = -90;
 		break;
 	case GLUT_KEY_RIGHT:
 		printf("Arrow Right %.1f\n",ViewAngleZ);
@@ -343,9 +428,10 @@ void specialKeyboardKeys(int key, int x, int y) {
 		moveToGridPos(ManGridX, ManGridY);
 		eye[cX] = ManPosX;
 		eye[cY] = ManPosY;
+		eye[cZ] = 1;
 		center[cX] = ManPosX + .1;
 		center[cY] = ManPosY;
-		ViewAngleZ = 90;
+		if (bTopView != 1) ViewAngleZ = 90;
 		break;
 	case GLUT_KEY_F1:
 		printf("F1\n");
@@ -406,73 +492,127 @@ void specialKeyboardKeys(int key, int x, int y) {
 void keyboard(unsigned char key, int x, int y)
 {
 	GLfloat radians = 0;
+	int ii = 0;
 
 	//printf("Key Pressed = %c\n", key);
 	switch (key)
 	{
+	case'A':
+		for (ii = 0; ii < 3; ii++) {
+			ambient_light[ii] += .1;
+			if (ambient_light[ii] >= 1.0) ambient_light[ii] = 1.0;
+		}
+		glLightfv(GL_LIGHT0, GL_AMBIENT_AND_DIFFUSE, ambient_light);
+		glLightModelfv(GL_LIGHT_MODEL_AMBIENT, ambient_light);
+		glEnable(GL_LIGHT0);
+		break;
+	case 'a':
+		for (ii = 0; ii < 3; ii++) {
+			ambient_light[ii] -= .1;
+			if (ambient_light[ii] <= 0) ambient_light[ii] = 0;
+		}
+		glLightfv(GL_LIGHT0, GL_AMBIENT_AND_DIFFUSE, ambient_light);
+		glLightModelfv(GL_LIGHT_MODEL_AMBIENT, ambient_light);
+		glEnable(GL_LIGHT0);
+		break;
+	case'D':
+		for (ii = 0; ii < 3; ii++) {
+			diffuse_light[ii] += .1;
+			if (diffuse_light[ii] >= 1.0) diffuse_light[ii] = 1.0;
+		}
+		glLightfv(GL_LIGHT0, GL_AMBIENT_AND_DIFFUSE, diffuse_light);
+		glLightModelfv(GL_LIGHT_MODEL_AMBIENT, diffuse_light);
+		glEnable(GL_LIGHT0);
+		break;
+	case 'd':
+		for (ii = 0; ii < 3; ii++) {
+			diffuse_light[ii] -= .1;
+			if (diffuse_light[ii] <= 0) diffuse_light[ii] = 0;
+		}
+		glLightfv(GL_LIGHT0, GL_AMBIENT_AND_DIFFUSE, diffuse_light);
+		glLightModelfv(GL_LIGHT_MODEL_AMBIENT, diffuse_light);
+		glEnable(GL_LIGHT0);
+		break;
+	case'E':
+		for (ii = 0; ii < 3; ii++) {
+			emission_light[ii] += .1;
+			if (emission_light[ii] >= 1.0) emission_light[ii] = 1.0;
+		}
+		glLightfv(GL_LIGHT0, GL_EMISSION, emission_light);
+		glLightModelfv(GL_LIGHT_MODEL_AMBIENT, emission_light);
+		glEnable(GL_LIGHT0);
+		break;
+	case 'e':
+		for (ii = 0; ii < 3; ii++) {
+			emission_light[ii] -= .1;
+			if (emission_light[ii] <= 0) emission_light[ii] = 0;
+		}
+		glLightfv(GL_LIGHT0, GL_EMISSION, emission_light);
+		glLightModelfv(GL_LIGHT_MODEL_AMBIENT, emission_light);
+		glEnable(GL_LIGHT0);
+		break;
 	case 'X': ViewAngleX += 5;
 		radians = (GLfloat)(ViewAngleX * (GLfloat)(M_PI / 180));
-		eye[cZ] = (GLfloat)(0.1) * cos(radians);
-		eye[cY] = (GLfloat)(0.1) * sin(radians);
+		eye[cZ] = 1+(GLfloat)(0.5) * cos(radians);
+		eye[cY] = (GLfloat)(0.5) * sin(radians);
 		if (eye[cZ] < 0)
 			up[cY] = -1.0;
 		if (eye[cZ] >= 0)
 			up[cY] = 1.0;
-/*		orthoLeft = ManPosX - moveStep;
-		orthoRight = ManPosX + moveStep;
-		orthoBottom = ManPosY - moveStep;
-		orthoTop = ManPosY + moveStep;
-
-		eye[cX] = ManPosX;
-		eye[cY] = ManPosY - .1;
-		eye[cZ] = .066;
-		center[cX] = ManPosX - .5;
-		center[cY] = ManPosY;
-		center[cZ] = .066;
-		up[cX] = 0;
-		up[cY] = 0;
-		up[cZ] = 1;
-		reshape(viewportWidth, viewportHeight);
-		*/
 		break;
 	case 'Y':
+		/*
 		//glPushMatrix();
 		glTranslatef(-ManPosX, -ManPosY, -.066);
 		glRotatef(5.0, 0, 1, 0);
 		glTranslatef(ManPosX, ManPosY, .066);
 		//glPopMatrix();
-		/*
+		*/
 		ViewAngleY += 5;
 		radians = (GLfloat)(ViewAngleY * (GLfloat)(M_PI / 180));
-		eye[cZ] = (GLfloat)(0.1) * cos(radians);
-		eye[cX] = (GLfloat)(0.1) * sin(radians);
+		eye[cZ] = (GLfloat)(0.5) * cos(radians);
+		eye[cX] = (GLfloat)(0.5) * sin(radians);
 		up[cY] = 1.0;
+
+		break;
+	case 'y':
+		//glPushMatrix();
+		/*glTranslatef(-ManPosX, -ManPosY, -.066);
+		glRotatef(-5.0, 0, 1, 0);
+		glTranslatef(ManPosX, ManPosY, .066);
+		//glPopMatrix();
 		*/
+		ViewAngleY -= 5;
+		radians = (GLfloat)(ViewAngleY * (GLfloat)(M_PI / 180));
+		eye[cZ] = (GLfloat)(0.5) * cos(radians);
+		eye[cX] = (GLfloat)(0.5) * sin(radians);
+		up[cY] = 1.0;
+		
 		break;
 	case 'Z': ViewAngleZ += 5;
 		radians = (GLfloat)(ViewAngleZ * (GLfloat)(M_PI / 180));
-		eye[cX] = (GLfloat)(.1) * sin(radians);
-		eye[cY] = (GLfloat)(.1) * cos(radians);
+		eye[cX] = (GLfloat)(.5) * sin(radians);
+		eye[cY] = (GLfloat)(.5) * cos(radians);
 		break;
 	case 'x': ViewAngleX -= 5;
 		radians = (GLfloat)(ViewAngleX * (GLfloat)(M_PI / 180));
-		eye[cZ] = (GLfloat)(.1) * cos(radians);
-		eye[cY] = (GLfloat)(.1) * sin(radians);
+		eye[cZ] = 1+(GLfloat)(.5) * cos(radians);
+		eye[cY] = (GLfloat)(.5) * sin(radians);
 		if (eye[cZ] < 0)
 			up[cY] = (GLfloat)-1.0;
 		if (eye[cZ] >= 0)
 			up[cY] = (GLfloat)1.0;
 		break;
-	case 'y': ViewAngleY -= 5;
+	case ']': ViewAngleY -= 5;
 		radians = (GLfloat)(ViewAngleY * (GLfloat)(M_PI / 180));
-		eye[cZ] = (GLfloat)(.1) * cos(radians);
-		eye[cX] = (GLfloat)(.1) * sin(radians);
+		eye[cZ] = (GLfloat)(.5) * cos(radians);
+		eye[cX] = (GLfloat)(.5) * sin(radians);
 		up[cY] = 1.0;
 		break;
 	case 'z': ViewAngleZ -= 5;
 		radians = (GLfloat)(ViewAngleZ * (GLfloat)(M_PI / 180));
-		eye[cX] = (GLfloat)(.1) * sin(radians);
-		eye[cY] = (GLfloat)(.1) * cos(radians);
+		eye[cX] = (GLfloat)(.5) * sin(radians);
+		eye[cY] = (GLfloat)(.5) * cos(radians);
 		break;
 
 	case 'L': 
@@ -481,7 +621,7 @@ void keyboard(unsigned char key, int x, int y)
 
 		radians = (GLfloat)(ViewAngleZ * (GLfloat)(M_PI / 180));
 		center[cX] = ManPosX+(GLfloat)(.1) * sin(radians);
-		center[cY] = ManPosY+ (GLfloat)(.1) * cos(radians);
+		center[cY] = ManPosY+ (GLfloat)(.5) * cos(radians);
 		eye[cX] = ManPosX; eye[cY] = ManPosY;
 		/*
 		eye[cX] = 0.7; eye[cY] = -0.6; eye[cZ] = 0.033;
@@ -495,20 +635,19 @@ void keyboard(unsigned char key, int x, int y)
 		if (ViewAngleZ >= 360.0) ViewAngleZ = 0;
 
 		radians = (GLfloat)(ViewAngleZ * (GLfloat)(M_PI / 180));
-		center[cX] = ManPosX + (GLfloat)(.1) * sin(radians);
-		center[cY] = ManPosY + (GLfloat)(.1) * cos(radians);
+		center[cX] = ManPosX + (GLfloat)(.5) * sin(radians);
+		center[cY] = ManPosY + (GLfloat)(.5) * cos(radians);
 		eye[cX] = ManPosX; eye[cY] = ManPosY;
 		/*
 		eye[cX] = 0.7; eye[cY] = -0.6; eye[cZ] = 0.033;
 		center[cX] = 0.7; center[cY] = -0.5; center[cZ] = 0.033;
 		up[cX] = 0; up[cY] = 0; up[cZ] = 1;
 		*/
-		printf("eX=%.3f eY=%.3f eZ=%.3f cX=%.3f cY=%.3f cZ=%.3f A=%.1F\n", eye[cX], eye[cY], eye[cZ], center[cX], center[cY], center[cZ], ViewAngleZ);
 		break;
 		eye[cX] += moveStep; break; center[cX] += moveStep; break;
 	case 'J': case 'j': eye[cX] -= moveStep; center[cX] -= moveStep; break;
-	case 'I': case 'i': ManPosY += moveStep; break; // eye[cY] += moveStep; center[cY] += moveStep; break;
-	case 'K': case 'k': ManPosY -= moveStep; break; // eye[cY] -= moveStep; center[cY] -= moveStep; break;
+	case 'I': case 'i': eye[cY] += moveStep; center[cY] += moveStep; break;// ManPosY += moveStep; break; //
+	case 'K': case 'k': eye[cY] -= moveStep; center[cY] -= moveStep; break;  //ManPosY -= moveStep; break; // 
 	case 'U': case 'u': eye[cZ] += moveStep; center[cZ] += moveStep; break;
 	case 'V': case 'v': eye[cZ] -= moveStep; center[cZ] -= moveStep; break;
 	case '-':
@@ -542,34 +681,15 @@ void keyboard(unsigned char key, int x, int y)
 		SetWallTextureOff();
 		break;
 	case '0':
+		SetWallTextureOn();
 
 		glPolygonMode(GL_FRONT, GL_FILL);
 		ViewAngleX = -90; ViewAngleY = 0; ViewAngleZ = 0;
-		eye[cX] = ManPosX;
-		eye[cY] = ManPosY;
-		eye[cZ] = 0;
-		center[cX] = ManPosX;
-		center[cY] = ManPosY + .1;
-		center[cZ] = 0.066;
-		up[cX] = 0;
-		up[cY] = 1;
-		up[cZ] = 0;
-		orthoLeft = -.1;
-		orthoRight = .1;
-		orthoBottom = -.1;
-		orthoTop = .1;
-		orthoNear = -.013;
-		orthoFar = 1.5;
+		SetOrthoGroundView();
 		ManGridX = 11;
 		ManGridY = 0;
-		/*GLdouble eye[3] = { 0.5,0.5,2.0 };
-		//GLdouble eye[3] = { 0.5,-0.5, -0.0 }; // Starting here doesn't
-		GLdouble center[3] = { 0.5,0.50,0 };
-		GLdouble up[3] = { 0,1,0 };
-		*/
-		bTopView = 1;
+		//bTopView = 1;
 		light_position[cX] = -2.0, light_position[cY] = -2.0, light_position[cZ] = 0;
-		SetWallTextureOff();
 		reshape(viewportWidth, viewportHeight);
 		break;
 	case 'T': case 't':
@@ -578,29 +698,7 @@ void keyboard(unsigned char key, int x, int y)
 	case 'M': case 'm':
 		glShadeModel(GL_SMOOTH);
 		break;
-	case 'O':
-		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-		glShadeModel(GL_SMOOTH);
-		SetWallTextureOn();
-		ViewAngleX = 0; ViewAngleY = 0; ViewAngleZ = 0;
-		eye[cX] = .5;
-		eye[cY] = .5;
-		eye[cZ] = 2.0;
-		center[cX] = .5;
-		center[cY] = .5;
-		center[cZ] = 0;
-		up[cX] = 0;
-		up[cY] = 1;
-		up[cZ] = 0;
-		orthoLeft = ORTHOLEFTSTART;
-		orthoRight = ORTHORIGHTSTART;
-		orthoBottom = ORTHOBOTTOMSTART;
-		orthoTop = ORTHOTOPSTART;
-		orthoNear = ORTHONEARSTART;
-		orthoFar = ORTHOFARSTART;
-		bTopView = 1;
-		light_position[cX] = -2.0, light_position[cY] = -2.0, light_position[cZ] = 0;
-		reshape(viewportWidth, viewportHeight);
+	case '[':
 		break;
 	case '2':
 		light_position[cY] -= 1;
@@ -634,24 +732,105 @@ void keyboard(unsigned char key, int x, int y)
 		break;
 	case 'F': 	case 'f':
 		glDisable(GL_LIGHT0);		break;
-	case 'R': 	case 'r':
-		glLightfv(GL_LIGHT0, GL_DIFFUSE, r_diffuse_light);
-		glEnable(GL_LIGHT0);		break;
-	case 'G': 	case 'g':
-		glLightfv(GL_LIGHT0, GL_DIFFUSE, g_diffuse_light);
-		glEnable(GL_LIGHT0);		break;
-	case 'B': 	case 'b':
-		glLightfv(GL_LIGHT0, GL_DIFFUSE, b_diffuse_light);
-		glEnable(GL_LIGHT0);		break;
-	case 'D': 	case 'd':
-		glLoadIdentity();
-		glLightfv(GL_LIGHT0, GL_POSITION, light_directional);	break;
-	case 'P': 	case 'p':
+	case 'R': 
+		diffuse_light[0] += .1;
+		if (diffuse_light[0] >= 1.0) diffuse_light[0] = 1.0;
+		emission_light[0] += .1;
+		if (emission_light[0] >= 1.0) emission_light[0] = 1.0;
+		ambient_light[0] += .1;
+		if (ambient_light[0] >= 1.0) ambient_light[0] = 1.0;
+		glLightfv(GL_LIGHT0, GL_AMBIENT_AND_DIFFUSE, diffuse_light);
+		glLightModelfv(GL_LIGHT_MODEL_AMBIENT, diffuse_light);
+		glLightfv(GL_LIGHT0, GL_AMBIENT_AND_DIFFUSE, emission_light);
+		glLightModelfv(GL_LIGHT_MODEL_AMBIENT, emission_light);
+		glLightfv(GL_LIGHT0, GL_AMBIENT_AND_DIFFUSE, ambient_light);
+		glLightModelfv(GL_LIGHT_MODEL_AMBIENT, ambient_light);
+		break;
+	case 'r':
+		diffuse_light[0] -= .1;
+		if (diffuse_light[0] <= 0.0) diffuse_light[0] = 0.0;
+		emission_light[0] -= .1;
+		if (emission_light[0] <= 0.0) emission_light[0] = 0.0;
+		ambient_light[0] -= .1;
+		if (ambient_light[0] <= 0) ambient_light[0] = 0.0;
+		glLightfv(GL_LIGHT0, GL_AMBIENT_AND_DIFFUSE, diffuse_light);
+		glLightModelfv(GL_LIGHT_MODEL_AMBIENT, diffuse_light);
+		glLightfv(GL_LIGHT0, GL_AMBIENT_AND_DIFFUSE, emission_light);
+		glLightModelfv(GL_LIGHT_MODEL_AMBIENT, emission_light);
+		glLightfv(GL_LIGHT0, GL_AMBIENT_AND_DIFFUSE, ambient_light);
+		glLightModelfv(GL_LIGHT_MODEL_AMBIENT, ambient_light);
+		break;
+	case 'G':
+		diffuse_light[1] += .1;
+		if (diffuse_light[1] >= 1.0) diffuse_light[1] = 1.0;
+		emission_light[1] += .1;
+		if (emission_light[1] >= 1.0) emission_light[1] = 1.0;
+		ambient_light[1] += .1;
+		if (ambient_light[1] >= 1.0) ambient_light[1] = 1.0;
+		glLightfv(GL_LIGHT0, GL_AMBIENT_AND_DIFFUSE, diffuse_light);
+		glLightModelfv(GL_LIGHT_MODEL_AMBIENT, diffuse_light);
+		glLightfv(GL_LIGHT0, GL_AMBIENT_AND_DIFFUSE, emission_light);
+		glLightModelfv(GL_LIGHT_MODEL_AMBIENT, emission_light);
+		glLightfv(GL_LIGHT0, GL_AMBIENT_AND_DIFFUSE, ambient_light);
+		glLightModelfv(GL_LIGHT_MODEL_AMBIENT, ambient_light);
+		break;
+	case 'g':
+		diffuse_light[1] -= .1;
+		if (diffuse_light[1] <= 0.0) diffuse_light[1] = 0.0;
+		emission_light[1] -= .1;
+		if (emission_light[1] <= 0.0) emission_light[1] = 0.0;
+		ambient_light[1] -= .1;
+		if (ambient_light[1] <= 0) ambient_light[1] = 0.0;
+		glLightfv(GL_LIGHT0, GL_AMBIENT_AND_DIFFUSE, diffuse_light);
+		glLightModelfv(GL_LIGHT_MODEL_AMBIENT, diffuse_light);
+		glLightfv(GL_LIGHT0, GL_AMBIENT_AND_DIFFUSE, emission_light);
+		glLightModelfv(GL_LIGHT_MODEL_AMBIENT, emission_light);
+		glLightfv(GL_LIGHT0, GL_AMBIENT_AND_DIFFUSE, ambient_light);
+		glLightModelfv(GL_LIGHT_MODEL_AMBIENT, ambient_light);
+		break;
+	case 'B':
+		diffuse_light[2] += .1;
+		if (diffuse_light[2] >= 1.0) diffuse_light[2] = 1.0;
+		emission_light[0] += .1;
+		if (emission_light[2] >= 1.0) emission_light[2] = 1.0;
+		ambient_light[2] += .1;
+		if (ambient_light[2] >= 1.0) ambient_light[2] = 1.0;
+		glLightfv(GL_LIGHT0, GL_AMBIENT_AND_DIFFUSE, diffuse_light);
+		glLightModelfv(GL_LIGHT_MODEL_AMBIENT, diffuse_light);
+		glLightfv(GL_LIGHT0, GL_AMBIENT_AND_DIFFUSE, emission_light);
+		glLightModelfv(GL_LIGHT_MODEL_AMBIENT, emission_light);
+		glLightfv(GL_LIGHT0, GL_AMBIENT_AND_DIFFUSE, ambient_light);
+		glLightModelfv(GL_LIGHT_MODEL_AMBIENT, ambient_light);
+		break;
+	case 'b':
+		diffuse_light[2] -= .1;
+		if (diffuse_light[2] <= 0.0) diffuse_light[2] = 0.0;
+		emission_light[2] -= .1;
+		if (emission_light[2] <= 0.0) emission_light[2] = 0.0;
+		ambient_light[2] -= .1;
+		if (ambient_light[2] <= 0) ambient_light[2] = 0.0;
+		glLightfv(GL_LIGHT0, GL_AMBIENT_AND_DIFFUSE, diffuse_light);
+		glLightModelfv(GL_LIGHT_MODEL_AMBIENT, diffuse_light);
+		glLightfv(GL_LIGHT0, GL_AMBIENT_AND_DIFFUSE, emission_light);
+		glLightModelfv(GL_LIGHT_MODEL_AMBIENT, emission_light);
+		glLightfv(GL_LIGHT0, GL_AMBIENT_AND_DIFFUSE, ambient_light);
+		glLightModelfv(GL_LIGHT_MODEL_AMBIENT, ambient_light);
+		break;
+	case '1':
 		glLoadIdentity();
 		glLightfv(GL_LIGHT0, GL_POSITION, light_position);	break;
+	case 'p':case 'P':   //Perspective projection 
+		bPerspectiveMode = 1;
+		bTopView = 0;
+		reshape(viewportWidth, viewportHeight);
+		break;
+	case 'o':case 'O':   //Perspective projection 
+		SetOrthoGroundView();
+		break;
 	case 'Q':	case 'q': exit(1);
 	}
 
+	printf("eX=%.3f eY=%.3f eZ=%.3f cX=%.3f cY=%.3f cZ=%.3f A=%.1F\n", eye[cX], eye[cY], eye[cZ], center[cX], center[cY], center[cZ], ViewAngleZ);
 
 	glutPostRedisplay();
 }
@@ -687,4 +866,26 @@ void read_file(char* argv)
 		fread(sp, sizeof(GLubyte), TexImgWidth * 3, infile);
 	}
 	fclose(infile);
+}
+
+void SetOrthoGroundView() {
+	ViewAngleX = -90; 
+	bPerspectiveMode = 0;
+	bTopView = 0;
+	eye[cX] = ManPosX;
+	eye[cY] = ManPosY;
+	eye[cZ] = 0.5066;
+	center[cX] = ManPosX;
+	center[cY] = ManPosY + .1;
+	center[cZ] = 0.5066;
+	up[cX] = 0;
+	up[cY] = 1;
+	up[cZ] = 0;
+	orthoLeft = -.1;
+	orthoRight = .1;
+	orthoBottom = -.1;
+	orthoTop = .1;
+	orthoNear = -.013;
+	orthoFar = 1.5;
+	reshape(viewportWidth, viewportHeight);
 }

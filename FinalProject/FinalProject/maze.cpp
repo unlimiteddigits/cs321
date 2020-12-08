@@ -248,6 +248,7 @@ void mazeFloor(GLfloat ManPosX, GLfloat ManPosY, GLfloat ViewAngleX, GLfloat Vie
 				glVertex3f(xur, yur, 0);  // upper right
 				glEnd();
 				glPushMatrix();
+				//glLoadIdentity();
 				glTranslatef(xlr, ylr, 0);
 				glRotatef(90.0f, 0.0, 0.0, 1.0);
 				drawWall();

@@ -15,7 +15,7 @@
 #define ORTHOLEFTSTART -.5;
 #define ORTHORIGHTSTART 0.5;
 #define ORTHOBOTTOMSTART -.5;
-#define ORTHOTOPSTART 0.5;
+#define ORTHOTOPSTART .5;
 #define ORTHOFARSTART 1.5;
 #define ORTHONEARSTART -1.5;
 
@@ -34,3 +34,4 @@ void read_file(char* argv);
 void menu(int choice);
 void SetWallTextureOn();
 void SetWallTextureOff();
+void SetOrthoGroundView();
