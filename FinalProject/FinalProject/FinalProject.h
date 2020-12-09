@@ -35,3 +35,5 @@ void menu(int choice);
 void SetWallTextureOn();
 void SetWallTextureOff();
 void SetOrthoGroundView();
+void SetManGridValues(int x, int y);
+void set_up_light(void);

@@ -1,4 +1,6 @@
 #pragma warning(disable : 4996)
+#pragma warning(disable : 4244)
+#pragma warning(disable : 4305)
 
 #include <math.h>
 #include <stdio.h>
@@ -62,16 +64,9 @@ GLfloat b_diffuse_light[] = { 0.0, 0.0, 1.0, 1.0 };
 // Setting for GL_LIGHT0
 GLfloat  ambient_light[] = { 0.3f, 0.3f, 0.3f, 1.0f };
 GLfloat  diffuse_light[] = { 0.6f, 0.6f, 0.6f, 1.0f };
-GLfloat  specular_light[] = { 0.6f, 0.6f, 0.6f, 1.0f };
-GLfloat  specular_property[] = { 0.6f, 0.6f, 0.6f, 1.0f };
 GLfloat  light_position[] = { 0.0, 0.0, 5.0, 1.0 };
 GLint	 shininess = 40;
 
-// Setting for GL_LIGHT1
-// Green Spotlight with narrow angle
-GLfloat diffuse_light1[] = { 0.2, 0.4, 0.9, 1.0 };
-GLfloat light_position1[] = { -0.3, 5.0, -0.3, 1.0 };
-GLfloat spot_direction1[] = { -0.3, -2.0, -0.3 };
 
 // Setting for GL_LIGHT2
 // Red Spotlight with wide angle
@@ -103,6 +98,8 @@ void other_init()
 	glutAddMenuEntry("Ortho Mode", 3);
 	glutAddMenuEntry("Perspective Mode", 4);
 	glutAddMenuEntry("Top View", 5);
+	glutAddMenuEntry("Wall Texture Off", 6);
+	glutAddMenuEntry("Wall Texture On", 7);
 	glutAttachMenu(GLUT_RIGHT_BUTTON);
 
 	glutIdleFunc(DoBackgroundStuff);    // playing with more functions
@@ -238,6 +235,8 @@ void display(void)
 	//glutSolidSphere(0.8, 20, 16);
 	glLightfv(GL_LIGHT0, GL_POSITION, light_position);
 	glPopMatrix();
+	
+	/* draw triangulation lines 
 	glColor3f(1.0, 1.0, 1.0);
 	glBegin(GL_LINE_STRIP);
 	glVertex3f(eye[cX], -1.0, -0.032f);  //upper right
@@ -245,6 +244,7 @@ void display(void)
 	glVertex3f(center[cX], center[cY], -0.010); //upper left
 	glVertex3f(eye[cX], eye[cY], -0.032f);  //upper right
 	glEnd();
+	*/
 
 	//Status info
 	//glLoadIdentity();
@@ -265,7 +265,11 @@ void reshape(int w, int h)
 
 	if (bPerspectiveMode) {
 		//glFrustum(orthoLeft, orthoRight, orthoBottom, orthoTop, orthoNear, orthoFar);
-		gluPerspective(105, 1.0f, .005, 1.5);
+		//glPushMatrix();
+		glTranslatef(0.0f, 0.052f, 0.015f);
+		gluPerspective(105, 1.0f, .005, 5.7);
+		glTranslatef(0.0f, -0.052f, -0.015f);
+		//glPopMatrix();
 		glMatrixMode(GL_MODELVIEW);
 		//glLoadIdentity();
 		glViewport(w / 2, h / 2, w / 2, h / 2);
@@ -379,29 +383,61 @@ menu(int choice)
 		reshape(viewportWidth, viewportHeight);
 		glutPostRedisplay();
 		break;
+	case 6:
+		SetWallTextureOff();
+		display();
+		break;
+	case 7:
+		SetWallTextureOn();
+		display();
+		break;
 	}
 }
 
 void specialKeyboardKeys(int key, int x, int y) {
 	printf("Speacial Key Pressed = %d  => ", key);
+	float xMove,yMove;
+	GLfloat radians = (GLfloat)(ViewAngleZ * (GLfloat)(M_PI / 180));;
+
 	switch (key)
 	{
 	case GLUT_KEY_UP:
+		xMove = sin(radians);
+		yMove = cos(radians);
+		if (yMove < .5 && yMove >= 0) yMove = 0;
+		if (xMove < .5 && xMove >= 0) xMove = 0;
+		if (yMove > -.5 && yMove < 0) yMove = 0;
+		if (xMove > -.5 && xMove < 0) xMove = 0;
+		if (yMove > .5) yMove = 1;
+		if (xMove > .5) xMove = 1;
+		if (yMove < -.5) yMove = -1;
+		if (xMove < -.5) xMove = -1;
 		printf("Arrow Up\n");
-
-		ManGridY += 1;
+		ManGridX += xMove;
+		ManGridY += yMove;
 		moveToGridPos(ManGridX, ManGridY);
 		eye[cX] = ManPosX;
-		eye[cY] = ManPosY;
+		eye[cY] = ManPosY ;
 		eye[cZ] = 1;
 		center[cX] = ManPosX;
 		center[cY] = ManPosY+.1;
 		up[cY] = 1;
-		ViewAngleZ = 0;
+		//ViewAngleZ = 0;
 		break;
 	case GLUT_KEY_DOWN:
+		xMove = sin(radians);
+		yMove = cos(radians);
+		if (yMove < .5 && yMove >= 0) yMove = 0;
+		if (xMove < .5 && xMove >= 0) xMove = 0;
+		if (yMove > -.5 && yMove < 0) yMove = 0;
+		if (xMove > -.5 && xMove < 0) xMove = 0;
+		if (yMove > .5) yMove = 1;
+		if (xMove > .5) xMove = 1;
+		if (yMove < -.5) yMove = -1;
+		if (xMove < -.5) xMove = -1;
 		printf("Arrow Down\n");
-		ManGridY -= 1;
+		ManGridX -= xMove;
+		ManGridY -= yMove;
 		moveToGridPos(ManGridX, ManGridY);
 		eye[cX] = ManPosX;
 		eye[cY] = ManPosY;
@@ -409,10 +445,12 @@ void specialKeyboardKeys(int key, int x, int y) {
 		center[cX] = ManPosX;
 		center[cY] = ManPosY-.1;
 		up[cY] = 1;
-		if (bTopView!=1) ViewAngleZ = 180;
+		//if (bTopView!=1) ViewAngleZ = 180;
 		break;
 	case GLUT_KEY_LEFT:
+		ViewAngleZ -= 15;
 		printf("Arrow Left %.1f\n", ViewAngleZ);
+		break;
 		ManGridX -= 1;
 		moveToGridPos(ManGridX, ManGridY);
 		eye[cX] = ManPosX;
@@ -420,10 +458,12 @@ void specialKeyboardKeys(int key, int x, int y) {
 		eye[cZ] = 1;
 		center[cX] = ManPosX - .1;
 		center[cY] = ManPosY;
-		if (bTopView != 1) ViewAngleZ = -90;
+		//if (bTopView != 1) ViewAngleZ = -90;
 		break;
 	case GLUT_KEY_RIGHT:
+		ViewAngleZ += 15;
 		printf("Arrow Right %.1f\n",ViewAngleZ);
+		break;
 		ManGridX += 1;
 		moveToGridPos(ManGridX, ManGridY);
 		eye[cX] = ManPosX;
@@ -431,7 +471,7 @@ void specialKeyboardKeys(int key, int x, int y) {
 		eye[cZ] = 1;
 		center[cX] = ManPosX + .1;
 		center[cY] = ManPosY;
-		if (bTopView != 1) ViewAngleZ = 90;
+		//if (bTopView != 1) ViewAngleZ = 90;
 		break;
 	case GLUT_KEY_F1:
 		printf("F1\n");
@@ -630,7 +670,7 @@ void keyboard(unsigned char key, int x, int y)
 		*/
 		printf("eX=%.3f eY=%.3f eZ=%.3f cX=%.3f cY=%.3f cZ=%.3f A=%.1F\n", eye[cX], eye[cY], eye[cZ], center[cX], center[cY], center[cZ], ViewAngleZ);
 		break;
-	case 'l': 
+	case 'J': 
 		ViewAngleZ -= 10.0;
 		if (ViewAngleZ >= 360.0) ViewAngleZ = 0;
 
@@ -638,14 +678,9 @@ void keyboard(unsigned char key, int x, int y)
 		center[cX] = ManPosX + (GLfloat)(.5) * sin(radians);
 		center[cY] = ManPosY + (GLfloat)(.5) * cos(radians);
 		eye[cX] = ManPosX; eye[cY] = ManPosY;
-		/*
-		eye[cX] = 0.7; eye[cY] = -0.6; eye[cZ] = 0.033;
-		center[cX] = 0.7; center[cY] = -0.5; center[cZ] = 0.033;
-		up[cX] = 0; up[cY] = 0; up[cZ] = 1;
-		*/
 		break;
 		eye[cX] += moveStep; break; center[cX] += moveStep; break;
-	case 'J': case 'j': eye[cX] -= moveStep; center[cX] -= moveStep; break;
+	case 'j': eye[cX] -= moveStep; center[cX] -= moveStep; break;
 	case 'I': case 'i': eye[cY] += moveStep; center[cY] += moveStep; break;// ManPosY += moveStep; break; //
 	case 'K': case 'k': eye[cY] -= moveStep; center[cY] -= moveStep; break;  //ManPosY -= moveStep; break; // 
 	case 'U': case 'u': eye[cZ] += moveStep; center[cZ] += moveStep; break;
@@ -820,6 +855,7 @@ void keyboard(unsigned char key, int x, int y)
 		glLoadIdentity();
 		glLightfv(GL_LIGHT0, GL_POSITION, light_position);	break;
 	case 'p':case 'P':   //Perspective projection 
+		SetOrthoGroundView();
 		bPerspectiveMode = 1;
 		bTopView = 0;
 		reshape(viewportWidth, viewportHeight);
@@ -874,10 +910,10 @@ void SetOrthoGroundView() {
 	bTopView = 0;
 	eye[cX] = ManPosX;
 	eye[cY] = ManPosY;
-	eye[cZ] = 0.5066;
+	eye[cZ] = 0.066;
 	center[cX] = ManPosX;
 	center[cY] = ManPosY + .1;
-	center[cZ] = 0.5066;
+	center[cZ] = 0.066;
 	up[cX] = 0;
 	up[cY] = 1;
 	up[cZ] = 0;
@@ -888,4 +924,9 @@ void SetOrthoGroundView() {
 	orthoNear = -.013;
 	orthoFar = 1.5;
 	reshape(viewportWidth, viewportHeight);
+}
+
+void SetManGridValues(int x, int y) {
+	ManGridX = x;
+	ManGridY = y;
 }
