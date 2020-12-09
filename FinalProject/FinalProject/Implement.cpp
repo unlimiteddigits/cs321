@@ -100,6 +100,8 @@ void other_init()
 	glutAddMenuEntry("Top View", 5);
 	glutAddMenuEntry("Wall Texture Off", 6);
 	glutAddMenuEntry("Wall Texture On", 7);
+	glutAddMenuEntry("Shield Off", 8);
+	glutAddMenuEntry("Shield On - hidden from inside", 9);
 	glutAttachMenu(GLUT_RIGHT_BUTTON);
 
 	glutIdleFunc(DoBackgroundStuff);    // playing with more functions
@@ -124,6 +126,10 @@ void other_init()
 	glEnable(GL_DEPTH_TEST);
 	glMatrixMode(GL_MODELVIEW);         // Get Back to the Modelview
 	moveToGridPos(ManGridX, ManGridY);
+	glPolygonMode(GL_FRONT, GL_FILL);
+	glCullFace(GL_BACK);
+	glEnable(GL_CULL_FACE);
+
 }
 
 void DoBackgroundStuff() {
@@ -335,7 +341,7 @@ menu(int choice)
 		break;
 	case 2:
 		glutSetWindowTitle("WireFrame");
-		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		glPolygonMode(GL_FRONT, GL_LINE);
 		SetWallTextureOff();
 		glutPostRedisplay();
 		break;
@@ -359,7 +365,7 @@ menu(int choice)
 	case 5:
 		bPerspectiveMode = 0;
 		glutSetWindowTitle("Top View");
-		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		glPolygonMode(GL_FRONT, GL_FILL);
 		glShadeModel(GL_SMOOTH);
 		SetWallTextureOn();
 		ViewAngleX = 0; ViewAngleY = 0; ViewAngleZ = 0;
@@ -389,6 +395,14 @@ menu(int choice)
 		break;
 	case 7:
 		SetWallTextureOn();
+		display();
+		break;
+	case 8:
+		TurnOffShield();
+		display();
+		break;
+	case 9:
+		TurnOnShield();
 		display();
 		break;
 	}
@@ -712,13 +726,12 @@ void keyboard(unsigned char key, int x, int y)
 		reshape(viewportWidth, viewportHeight);
 		break;
 	case 'W': printf("Wireframe mode"); 
-		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		glPolygonMode(GL_FRONT, GL_LINE);
 		SetWallTextureOff();
 		break;
 	case '0':
 		SetWallTextureOn();
-
-		glPolygonMode(GL_FRONT, GL_FILL);
+		moveToGridPos(11, 0);
 		ViewAngleX = -90; ViewAngleY = 0; ViewAngleZ = 0;
 		SetOrthoGroundView();
 		ManGridX = 11;

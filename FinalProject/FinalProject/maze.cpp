@@ -20,6 +20,7 @@ int row = 0, column = 0;
 int blockNumber = 0;
 int GridPosX = 11, GridPosY = 0;
 int bWallTextureOn = 1;
+int bShieldsUp = 1;
 
 /* Left, back, bottom*/
 /*Right, Front, top*/
@@ -35,10 +36,10 @@ GLfloat vertices[] = { 0.000, 0.000, 0.001,    /* 0 - Back Bottom	Left */
 					  /* Left, back, bottom*/
 					  /*Right, Front, top*/
 GLfloat floorVertices[] = { -1.0, -1.0, 0.0,
-						1.0, -1.0, 0.0,    
-						1.0, 1.0, 0.0,    
-						-1.0, 1.0, 0.0 };  
-
+						2.0, -1.0, 0.0,    
+						2.0, 2.0, 0.0,    
+						-1.0, 2.0, 0.0 };  
+const int cRed = 0, cPurple = 1, cGreen = 2, cBlue = 3, cYellow = 4, cWhite = 5;
 GLfloat colors[] = { 0.9, 0.1, 0.1,			/*  back side - Red */
 					0.935, 0.35, 0.935,		/* top side - purple*/
 					0.05, 0.95, 0.05,		/* Left Side - green */
@@ -88,6 +89,14 @@ void SetWallTextureOff() {
 	bWallTextureOn = 0;
 }
 
+void TurnOnShield() {
+	bShieldsUp = 1;
+}
+
+void TurnOffShield() {
+	bShieldsUp = 0;
+}
+
 void mazeWall(int v1, int v2, int v3, int v4, int color) {
 	int range = 1;   //  effectivly - a zoom for the texture
 	glBegin(GL_POLYGON);
@@ -120,7 +129,7 @@ void DrawFloor() {
 	glPushMatrix();
 	glBegin(GL_POLYGON);
 	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE,
-		colors + 1 * 3);
+		colors + cPurple * 3);
 
 
 	glTexCoord2f(0.0, 0.0); 
@@ -176,7 +185,7 @@ void drawMan(GLfloat ViewAngleZ) {
 	glPushMatrix();
 
 	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE,
-		colors + 5 * 3);
+		colors + cWhite * 3);
 
 	//position Head
 	glTranslatef(positionX, positionY, sqSize * .76);
@@ -186,28 +195,28 @@ void drawMan(GLfloat ViewAngleZ) {
 
 	// torso
 	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE,
-		colors + 4 * 3);
+		colors + cYellow * 3);
 	glTranslatef(positionX, positionY, sqSize * .5);
 	glutSolidCube(0.014);
 	glTranslatef(-positionX, -positionY, -sqSize * .5);
 
 	// leg1
 	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE,
-		colors + 3 * 3);
+		colors + cBlue * 3);
 	glTranslatef(positionX - .003, positionY, sqSize * .35);
 	glutSolidCylinder(.005, -.015, 17, 17);
 	glTranslatef(-(positionX - .003), -positionY, -sqSize * .35);
 
 	// leg2
 	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE,
-		colors + 3 * 3);
+		colors + cBlue * 3);
 	glTranslatef(positionX + .003, positionY, sqSize * .35);
 	glutSolidCylinder(.005, -.015, 17, 17);
 	glTranslatef(-(positionX + .003), -positionY, -sqSize * .35);
 
 	// Arm RIGHT UPPER
 	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE,
-		colors + 4 * 3);
+		colors + cYellow * 3);
 	glTranslatef(positionX + .004, positionY, sqSize * .55);
 	glRotatef(165, 0, 1, 0);
 	glRotatef(-5, 1, 0, 0);
@@ -218,7 +227,7 @@ void drawMan(GLfloat ViewAngleZ) {
 
 	// Arm Left Upper
 	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE,
-		colors + 4 * 3);
+		colors + cYellow * 3);
 	glTranslatef(positionX - .004, positionY, sqSize * .55);
 	glRotatef(-165, 0, 1, 0);
 	glutSolidCylinder(.004, .015, 17, 17);
@@ -227,7 +236,7 @@ void drawMan(GLfloat ViewAngleZ) {
 
 	// Arm Right Lower
 	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE,
-		colors + 5 * 3);
+		colors + cWhite * 3);
 	glTranslatef(positionX + .008, positionY+.003, sqSize * .32);
 	glRotatef(-90, 1, 0, 0);
 	glutSolidCylinder(.0035, .006, 17, 17);
@@ -236,7 +245,7 @@ void drawMan(GLfloat ViewAngleZ) {
 
 	// Arm Left Lower
 	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE,
-		colors + 5 * 3);
+		colors + cWhite * 3);
 	glTranslatef(positionX - .008, positionY, sqSize * .32);
 	glRotatef(180, 1, 0, 0);
 	glutSolidCylinder(.0035, .005, 17, 17);
@@ -277,6 +286,12 @@ void mazeFloor(GLfloat ManPosX, GLfloat ManPosY, GLfloat ViewAngleX, GLfloat Vie
 	char Y_Label[] = "Y-Axis";
 	char Z_Label[] = "Z-Axis";
 
+	GLfloat	increment;
+	increment = sqBorder + sqSize + sqBorder;
+
+	GLfloat positionX = increment * GridPosX - (increment / 2);
+	GLfloat positionY = increment * GridPosY - (increment / 2);
+
 	glPushMatrix();
 	//glLoadIdentity();
 	glTranslatef(0.50, 0.5, 0.0);
@@ -310,6 +325,17 @@ void mazeFloor(GLfloat ManPosX, GLfloat ManPosY, GLfloat ViewAngleX, GLfloat Vie
 	glTranslatef(-ManPosX,-ManPosY, 0);
 
 	glDisable(GL_TEXTURE_2D);
+	
+	if (bShieldsUp) {
+		glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE,
+			colors + cRed * 3);
+
+		//position Shield
+		glTranslatef(positionX, positionY, sqSize * .76);
+		//glutSolidTorus(0.004, 0.01, 20, 50);  //doughnut
+		glutSolidSphere(.1, 17, 17);
+		glTranslatef(-positionX, -positionY, -sqSize * .76);
+	}
 
 	drawMan(ViewAngleZ);
 	if (bWallTextureOn) {
@@ -317,6 +343,7 @@ void mazeFloor(GLfloat ManPosX, GLfloat ManPosY, GLfloat ViewAngleX, GLfloat Vie
 	}
 	else {
 		glEnable(GL_LIGHTING);
+		glEnable(GL_LIGHT1);
 		//glEnable(GL_POLYGON_OFFSET_FILL);
 		glShadeModel(GL_SMOOTH);
 		glEnable(GL_DEPTH_TEST);
@@ -324,7 +351,6 @@ void mazeFloor(GLfloat ManPosX, GLfloat ManPosY, GLfloat ViewAngleX, GLfloat Vie
 
 	GLfloat xll, xlr, xul, xur;
 	GLfloat yll, ylr, yul, yur;
-	GLfloat	increment;
 	increment = sqBorder + sqSize + sqBorder;
 
 
