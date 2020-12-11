@@ -143,7 +143,9 @@
     <ClCompile Include="Implement.cpp">
       <ConformanceMode Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ConformanceMode>
     </ClCompile>
-    <ClCompile Include="maze.cpp" />
+    <ClCompile Include="maze.cpp">
+      <ConformanceMode Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ConformanceMode>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="FinalProject.h" />

@@ -22,8 +22,13 @@ int GridPosX = 11, GridPosY = 0;
 int bWallTextureOn = 1;
 int bShieldsUp = 1;
 
-/* Left, back, bottom*/
-/*Right, Front, top*/
+GLint TexImgWidth, TexImgHeight, Texmax;
+FILE* infile;
+char dummy[80];
+GLubyte* TexBits; /* Texture pixmap readfile interface */
+
+					/* Left, back, bottom*/
+					/*Right, Front, top*/
 GLfloat vertices[] = { 0.000, 0.000, 0.001,    /* 0 - Back Bottom	Left */
 						0.066, 0.000, 0.001,    /* 1 - Back Bottom	Right*/
 						0.066, 0.008, 0.001,    /* 2 - Back Top		Right*/
@@ -36,10 +41,12 @@ GLfloat vertices[] = { 0.000, 0.000, 0.001,    /* 0 - Back Bottom	Left */
 					  /* Left, back, bottom*/
 					  /*Right, Front, top*/
 GLfloat floorVertices[] = { -1.0, -1.0, 0.0,
-						2.0, -1.0, 0.0,    
-						2.0, 2.0, 0.0,    
-						-1.0, 2.0, 0.0 };  
+						2.0, -1.0, 0.0,
+						2.0, 2.0, 0.0,
+						-1.0, 2.0, 0.0 };
+
 const int cRed = 0, cPurple = 1, cGreen = 2, cBlue = 3, cYellow = 4, cWhite = 5;
+
 GLfloat colors[] = { 0.9, 0.1, 0.1,			/*  back side - Red */
 					0.935, 0.35, 0.935,		/* top side - purple*/
 					0.05, 0.95, 0.05,		/* Left Side - green */
@@ -67,8 +74,18 @@ int squares[] = { 12,9,13,12,10,10,10,10,10,10,3,14,10,10,9,
 						12,10,10,10,10,3,13,12,3,14,2,3,6,10,1,
 						5,14,8,9,12,9,5,5,12,10,10,10,10,10,3,
 						6,10,3,6,3,6,1,6,2,10,10,10,10,10,11
-					 };
+};
 
+GLfloat emission_light[] = { 1.0, 1.0, 1.0, 1.0 };
+
+GLfloat light_directional[] = { -2.0, 1.0, 2.0, 0.0 };  //shader 8 includes angle
+
+// Setting for GL_LIGHT0
+GLfloat  ambient_light[] = { 0.3f, 0.3f, 0.3f, 1.0f };
+GLfloat  diffuse_light[] = { 0.6f, 0.6f, 0.6f, 1.0f };
+GLint	 shininess = 40;
+
+GLfloat  light_position[] = { 0.0, 0.0, 5.0, 1.0 };
 GLfloat  specular_light[] = { 0.6f, 0.6f, 0.6f, 1.0f };
 GLfloat  specular_property[] = { 0.6f, 0.6f, 0.6f, 1.0f };
 GLint	 shininess1 = 40;
@@ -80,6 +97,17 @@ GLfloat light_position1[] = { 0.0, 0.0, 0.05, 1.0 };
 GLfloat spot_direction1[] = { 0.0, 1.0, 0.0 };
 GLint	 exponent = 0;
 GLfloat	 cutoff = 10.0;
+
+// Setting for GL_LIGHT2
+// Red Spotlight with wide angle
+GLfloat diffuse_light2[] = { 1.0, 0.2, 0.6, 1.0 };
+GLfloat light_position2[] = { 0.3, -0.5, 4.0, 1.0 };
+GLfloat spot_direction2[] = { 0.3, -0.5, -2.0 };
+
+GLfloat fogColor[4] = { .10f,.10f,.10f,1.0f };
+GLfloat FogDensity = 1.0;
+GLfloat FogVisability = .5;
+int FogOn = -1;           // >0 = on  <0 = off
 
 void SetWallTextureOn() {
 	bWallTextureOn = 1;
@@ -95,6 +123,32 @@ void TurnOnShield() {
 
 void TurnOffShield() {
 	bShieldsUp = 0;
+}
+
+void IncreaseCutoffAngle() {
+	cutoff += 1;
+	if (cutoff >= 45) cutoff = 45;
+}
+
+void DecreaseCutoffAngle() {
+	cutoff -= 1;
+	if (cutoff <= 0) cutoff = 1;
+}
+
+void IncreaseFogDensity() {
+	FogVisability += .1;
+	if (FogVisability > 1) FogVisability = 1;
+	glFogf(GL_FOG_DENSITY, FogDensity);
+	glFogf(GL_FOG_END, FogVisability); // Fog End Depth
+	glEnable(GL_FOG);
+}
+
+void DecreaseFogDensity() {
+	FogVisability -= .1;
+	if (FogVisability <= 0.1) FogVisability = 0.1;
+	glFogf(GL_FOG_DENSITY, FogDensity);
+	glFogf(GL_FOG_END, FogVisability); // Fog End Depth
+	glEnable(GL_FOG);
 }
 
 void mazeWall(int v1, int v2, int v3, int v4, int color) {
@@ -126,17 +180,29 @@ void mazeWall(int v1, int v2, int v3, int v4, int color) {
 void DrawFloor() {
 	int range = 1;
 
+
+
+	read_file("BigPebble.ppm");
+	//TexBitsFloor = TexBits;
+
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, TexImgWidth, TexImgHeight, 0, GL_RGB,
+		GL_UNSIGNED_BYTE, TexBits);
+	if (bWallTextureOn) {
+		glEnable(GL_TEXTURE_2D);
+	}
+	glEnable(GL_DEPTH_TEST);
+
 	glPushMatrix();
+
 	glBegin(GL_POLYGON);
 	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE,
 		colors + cPurple * 3);
 
-
-	glTexCoord2f(0.0, 0.0); 
+	glTexCoord2f(0.0, 0.0);
 	glNormal3fv(normals + 7 * 3);
 	glVertex3fv(floorVertices + 0 * 3);
 
-	glTexCoord2f(0.0, range); 
+	glTexCoord2f(0.0, range);
 	glNormal3fv(normals + 7 * 3);
 	glVertex3fv(floorVertices + 1 * 3);
 
@@ -144,11 +210,17 @@ void DrawFloor() {
 	glNormal3fv(normals + 7 * 3);
 	glVertex3fv(floorVertices + 2 * 3);
 
-	glTexCoord2f(range, 0.0); 
+	glTexCoord2f(range, 0.0);
 	glNormal3fv(normals + 7 * 3);
 	glVertex3fv(floorVertices + 3 * 3);
 	glEnd();
 	glPopMatrix();
+
+	read_file("SmallTile90.ppm");
+	//TexBitsWall = TexBits;
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, TexImgWidth, TexImgHeight, 0, GL_RGB,
+		GL_UNSIGNED_BYTE, TexBits);
+
 }
 
 void drawWall() {
@@ -163,8 +235,6 @@ void drawMan(GLfloat ViewAngleZ) {
 	increment = sqBorder + sqSize + sqBorder;
 	GLfloat positionX = increment * GridPosX - (increment / 2);
 	GLfloat positionY = increment * GridPosY - (increment / 2);
-	//ManPosX = positionX;
-	//ManPosY = positionY;
 	set_up_light();
 	DrawFloor();
 
@@ -172,9 +242,9 @@ void drawMan(GLfloat ViewAngleZ) {
 	glTranslatef(positionX, positionY, sqSize * .76);
 	glRotatef(-ViewAngleZ, 0.0f, 0.0f, 1.0f);
 	light_position1[0] = positionX;
-	light_position1[1] = positionY;
+	light_position1[1] = positionY - .1;
 	light_position1[2] = 0;
-	light_position1[3] = 0;
+	light_position1[3] = 1;
 
 	spot_direction1[0] = sin(-ViewAngleZ);
 	spot_direction1[1] = cos(-ViewAngleZ);
@@ -237,11 +307,11 @@ void drawMan(GLfloat ViewAngleZ) {
 	// Arm Right Lower
 	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE,
 		colors + cWhite * 3);
-	glTranslatef(positionX + .008, positionY+.003, sqSize * .32);
+	glTranslatef(positionX + .008, positionY + .003, sqSize * .32);
 	glRotatef(-90, 1, 0, 0);
 	glutSolidCylinder(.0035, .006, 17, 17);
 	glRotatef(90, 1, 0, 0);
-	glTranslatef(-(positionX + .008), -(positionY+.003), -sqSize * .32);
+	glTranslatef(-(positionX + .008), -(positionY + .003), -sqSize * .32);
 
 	// Arm Left Lower
 	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE,
@@ -258,9 +328,9 @@ void drawMan(GLfloat ViewAngleZ) {
 }
 
 void drawBorder(int x, int y, int viewportWidth, int viewportHeight) {
-	glViewport((GLsizei) x, 
-		(GLsizei) y, 
-		(GLint)viewportWidth, (GLint)viewportHeight); 
+	glViewport((GLsizei)x,
+		(GLsizei)y,
+		(GLint)viewportWidth, (GLint)viewportHeight);
 	glColor3f(1.0, 0.0, 0.0);       // for the Red - need multiple windows
 
 	glMatrixMode(GL_MODELVIEW);
@@ -295,37 +365,37 @@ void mazeFloor(GLfloat ManPosX, GLfloat ManPosY, GLfloat ViewAngleX, GLfloat Vie
 	glPushMatrix();
 	//glLoadIdentity();
 	glTranslatef(0.50, 0.5, 0.0);
-/*
-	//glEnable(GL_LINES);
-	glBegin(GL_LINE_STRIP);
-	glVertex3f(0.0f, 0.0f, 0.0f);
-	glVertex3f(.4f, 0.4f, 0.0f);
-	glVertex3f(0.6f, 0.4f, 0.0f);
-	glVertex3f(1.0f, 0.0f, 0.0f);
-	glEnd();
+	/*
+		//glEnable(GL_LINES);
+		glBegin(GL_LINE_STRIP);
+		glVertex3f(0.0f, 0.0f, 0.0f);
+		glVertex3f(.4f, 0.4f, 0.0f);
+		glVertex3f(0.6f, 0.4f, 0.0f);
+		glVertex3f(1.0f, 0.0f, 0.0f);
+		glEnd();
 
-	//glEnable(GL_LINES);
-	glBegin(GL_LINE_STRIP);
-	glVertex3f(0.0f, 1.0f, 0.0f);
-	glVertex3f(0.4f, 0.6f, 0.0f);
-	glVertex3f(0.6f, 0.6f, 0.0f);
-	glVertex3f(1.0f, 1.0f, 0.0f);
-	glEnd();
-	*/
-	//glLoadIdentity();
+		//glEnable(GL_LINES);
+		glBegin(GL_LINE_STRIP);
+		glVertex3f(0.0f, 1.0f, 0.0f);
+		glVertex3f(0.4f, 0.6f, 0.0f);
+		glVertex3f(0.6f, 0.6f, 0.0f);
+		glVertex3f(1.0f, 1.0f, 0.0f);
+		glEnd();
+		*/
+		//glLoadIdentity();
 	glPopMatrix();
 	glTranslatef(0.50, 0.5, 0.0);
-	
+
 	glLoadIdentity();
 
 	//glTranslatef(-ManPosX, -ManPosY, 0);
 	glRotatef(ViewAngleX, 1.0f, 0.0f, 0.0f);
 	glRotatef(ViewAngleY, 0.0f, 1.0f, 0.0f);
 	glRotatef(ViewAngleZ, 0.0f, 0.0f, 1.0f);
-	glTranslatef(-ManPosX,-ManPosY, 0);
+	glTranslatef(-ManPosX, -ManPosY, 0);
 
 	glDisable(GL_TEXTURE_2D);
-	
+
 	if (bShieldsUp) {
 		glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE,
 			colors + cRed * 3);
@@ -355,7 +425,7 @@ void mazeFloor(GLfloat ManPosX, GLfloat ManPosY, GLfloat ViewAngleX, GLfloat Vie
 
 
 
-	for (row = 0; row < mazeHeight; row++){
+	for (row = 0; row < mazeHeight; row++) {
 		for (column = 0; column < mazeWidth; column++) {
 			blockNumber = row * mazeWidth + column;
 			xll = (increment)*column;
@@ -422,26 +492,26 @@ void moveToGridPos(int x, int y) {
 
 	//blockNumber = (y - 1) * mazeWidth + (x - 1);
 	blockNumber = (GridPosY - 1) * mazeWidth + (GridPosX - 1);
-	if (x>=0 && x<=16 && y>=0 && y<=11) {
-	if (squares[blockNumber] & 1) {
-		printf("Can not go East. %d,%d,%d\t\t", GridPosX, GridPosY, squares[blockNumber]);
-		if (x > GridPosX) x = GridPosX;
-	}
-	if (squares[blockNumber] & 2) {
-		printf("Can not go North. %d,%d,%d\t\t", GridPosX, GridPosY, squares[blockNumber]);
-		if (y > GridPosY) y = GridPosY;
-	}
-	if (squares[blockNumber] & 4) {
-		printf("Can not go West. %d,%d,%d\t\t", GridPosX, GridPosY, squares[blockNumber]);
-		if (x < GridPosX) x = GridPosX;
-	}
-	if (squares[blockNumber] & 8) {
-		printf("Can not go South. %d,%d,%d\t\t", GridPosX, GridPosY, squares[blockNumber]);
-		if (y < GridPosY) y = GridPosY;
-	}
-	printf("\n");
+	if (x >= 0 && x <= 16 && y >= 0 && y <= 11) {
+		if (squares[blockNumber] & 1) {
+			printf("Can not go East. %d,%d,%d\t\t", GridPosX, GridPosY, squares[blockNumber]);
+			if (x > GridPosX) x = GridPosX;
+		}
+		if (squares[blockNumber] & 2) {
+			printf("Can not go North. %d,%d,%d\t\t", GridPosX, GridPosY, squares[blockNumber]);
+			if (y > GridPosY) y = GridPosY;
+		}
+		if (squares[blockNumber] & 4) {
+			printf("Can not go West. %d,%d,%d\t\t", GridPosX, GridPosY, squares[blockNumber]);
+			if (x < GridPosX) x = GridPosX;
+		}
+		if (squares[blockNumber] & 8) {
+			printf("Can not go South. %d,%d,%d\t\t", GridPosX, GridPosY, squares[blockNumber]);
+			if (y < GridPosY) y = GridPosY;
+		}
+		printf("\n");
 
-}
+	}
 	SetManGridValues(x, y);
 	GLfloat positionX = increment * x - (increment / 2);
 	GLfloat positionY = increment * y - (increment / 2);
@@ -476,11 +546,17 @@ void set_up_light(void)
 	glMatrixMode(GL_MODELVIEW);
 	//glLoadIdentity();
 
+	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, ambient_light);
+	glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, diffuse_light);
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_LIGHTING);
+
 	// Spot Light 1
 	glLightfv(GL_LIGHT1, GL_DIFFUSE, diffuse_light1);
 	glLightfv(GL_LIGHT1, GL_SPECULAR, specular_light);
 
 	//glLoadIdentity();
+	glLightfv(GL_LIGHT0, GL_POSITION, light_position);
 	glLightfv(GL_LIGHT1, GL_POSITION, light_position1);
 	glLightf(GL_LIGHT1, GL_SPOT_CUTOFF, cutoff);
 	//glLoadIdentity();
@@ -492,5 +568,238 @@ void set_up_light(void)
 	glMateriali(GL_FRONT, GL_SHININESS, shininess1);
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_LIGHTING);
+	
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glLightfv(GL_LIGHT0, GL_POSITION, light_position);
+
 }
 
+void read_file(char* argv)
+{
+	int i, temp;
+	GLubyte* sp, c;
+
+	if ((infile = fopen(argv, "rb+")) == NULL)
+	{
+		printf("File open error\n");
+		exit(1);
+	}
+	do { temp = fgetc(infile); } while (temp != '\n');
+	do { temp = fgetc(infile); } while (temp != '\n');		fscanf(infile, "%s", dummy);	TexImgWidth = atoi(dummy);
+	fscanf(infile, "%c", &c);
+	fscanf(infile, "%s", dummy);	TexImgHeight = atoi(dummy);
+	fscanf(infile, "%c", &c);
+	fscanf(infile, "%s", dummy);	Texmax = atoi(dummy);
+	fscanf(infile, "%c", &c);									// return after max
+
+	if (TexBits != 0) free(TexBits);
+	TexBits = (GLubyte*)calloc(TexImgWidth * TexImgHeight * 3, sizeof(GLubyte));
+	for (i = TexImgHeight - 1; i >= 0; i--)
+	{
+		sp = TexBits + i * TexImgWidth * 3;
+		fread(sp, sizeof(GLubyte), TexImgWidth * 3, infile);
+	}
+	fclose(infile);
+}
+
+void FogToggle() {
+	FogOn = -FogOn;
+	if (FogOn > 0) glEnable(GL_FOG);
+	else glDisable(GL_FOG);
+}
+
+void MazeInit() {
+	glFogi(GL_FOG_MODE, GL_LINEAR);
+	glFogfv(GL_FOG_COLOR, fogColor);
+	glFogf(GL_FOG_DENSITY, FogDensity);
+	glHint(GL_FOG_HINT, GL_DONT_CARE); glFogf(GL_FOG_START, 0.050f); // Fog Start Depth
+	glFogf(GL_FOG_END, FogVisability); // Fog End Depth
+	FogToggle();
+}
+
+void MoveLightNorth() {
+	light_position[cY] += 1;
+	light_directional[cY] += 1;
+	glLightfv(GL_LIGHT0, GL_POSITION, light_position);
+	printf("light Pos X=%.1f Y=%.1f Z=%.1f\n ", light_position[cX], light_position[cY], light_position[cZ]);
+}
+void MoveLightSouth() {
+	light_position[cY] -= 1;
+	light_directional[cY] -= 1;
+	glLightfv(GL_LIGHT0, GL_POSITION, light_position);
+	printf("light Pos X=%.1f Y=%.1f Z=%.1f\n ", light_position[cX], light_position[cY], light_position[cZ]);
+}
+void MoveLightEast() {
+	light_position[cX] += 1;
+	light_directional[cX] += 1;
+	glLightfv(GL_LIGHT0, GL_POSITION, light_directional);
+}
+void MoveLightWest() {
+	light_position[cX] -= 1;
+	light_directional[cX] -= 1;
+	glLightfv(GL_LIGHT0, GL_POSITION, light_directional);
+}
+void MoveLightUp() {
+	light_position[cZ] -= 1;
+	light_directional[cZ] -= 1;
+	glLightfv(GL_LIGHT0, GL_POSITION, light_position);
+	glEnable(GL_LIGHT0);
+}
+void MoveLightDown() {
+	light_position[cZ] += 1;
+	light_directional[cZ] += 1;
+	glLightfv(GL_LIGHT0, GL_POSITION, light_position);
+}
+
+void IncreaseRedLight() {
+	diffuse_light[0] += .1;
+	if (diffuse_light[0] >= 1.0) diffuse_light[0] = 1.0;
+	emission_light[0] += .1;
+	if (emission_light[0] >= 1.0) emission_light[0] = 1.0;
+	ambient_light[0] += .1;
+	if (ambient_light[0] >= 1.0) ambient_light[0] = 1.0;
+	glLightfv(GL_LIGHT0, GL_AMBIENT_AND_DIFFUSE, diffuse_light);
+	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, diffuse_light);
+	glLightfv(GL_LIGHT0, GL_AMBIENT_AND_DIFFUSE, emission_light);
+	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, emission_light);
+	glLightfv(GL_LIGHT0, GL_AMBIENT_AND_DIFFUSE, ambient_light);
+	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, ambient_light);
+}
+
+void DecreaseRedLight() {
+	diffuse_light[0] -= .1;
+	if (diffuse_light[0] <= 0.0) diffuse_light[0] = 0.0;
+	emission_light[0] -= .1;
+	if (emission_light[0] <= 0.0) emission_light[0] = 0.0;
+	ambient_light[0] -= .1;
+	if (ambient_light[0] <= 0) ambient_light[0] = 0.0;
+	glLightfv(GL_LIGHT0, GL_AMBIENT_AND_DIFFUSE, diffuse_light);
+	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, diffuse_light);
+	glLightfv(GL_LIGHT0, GL_AMBIENT_AND_DIFFUSE, emission_light);
+	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, emission_light);
+	glLightfv(GL_LIGHT0, GL_AMBIENT_AND_DIFFUSE, ambient_light);
+	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, ambient_light);
+}
+
+void IncreaseGreenLight() {
+	diffuse_light[1] += .1;
+	if (diffuse_light[1] >= 1.0) diffuse_light[1] = 1.0;
+	emission_light[1] += .1;
+	if (emission_light[1] >= 1.0) emission_light[1] = 1.0;
+	ambient_light[1] += .1;
+	if (ambient_light[1] >= 1.0) ambient_light[1] = 1.0;
+	glLightfv(GL_LIGHT0, GL_AMBIENT_AND_DIFFUSE, diffuse_light);
+	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, diffuse_light);
+	glLightfv(GL_LIGHT0, GL_AMBIENT_AND_DIFFUSE, emission_light);
+	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, emission_light);
+	glLightfv(GL_LIGHT0, GL_AMBIENT_AND_DIFFUSE, ambient_light);
+	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, ambient_light);
+}
+
+void DecreaseGreenLight() {
+	diffuse_light[1] -= .1;
+	if (diffuse_light[1] <= 0.0) diffuse_light[1] = 0.0;
+	emission_light[1] -= .1;
+	if (emission_light[1] <= 0.0) emission_light[1] = 0.0;
+	ambient_light[1] -= .1;
+	if (ambient_light[1] <= 0) ambient_light[1] = 0.0;
+	glLightfv(GL_LIGHT0, GL_AMBIENT_AND_DIFFUSE, diffuse_light);
+	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, diffuse_light);
+	glLightfv(GL_LIGHT0, GL_AMBIENT_AND_DIFFUSE, emission_light);
+	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, emission_light);
+	glLightfv(GL_LIGHT0, GL_AMBIENT_AND_DIFFUSE, ambient_light);
+	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, ambient_light);
+}
+
+void IncreaseBlueLight() {
+	diffuse_light[2] += .1;
+	if (diffuse_light[2] >= 1.0) diffuse_light[2] = 1.0;
+	emission_light[0] += .1;
+	if (emission_light[2] >= 1.0) emission_light[2] = 1.0;
+	ambient_light[2] += .1;
+	if (ambient_light[2] >= 1.0) ambient_light[2] = 1.0;
+	glLightfv(GL_LIGHT0, GL_AMBIENT_AND_DIFFUSE, diffuse_light);
+	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, diffuse_light);
+	glLightfv(GL_LIGHT0, GL_AMBIENT_AND_DIFFUSE, emission_light);
+	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, emission_light);
+	glLightfv(GL_LIGHT0, GL_AMBIENT_AND_DIFFUSE, ambient_light);
+	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, ambient_light);
+}
+
+void DecreaseBlueLight() {
+	diffuse_light[2] -= .1;
+	if (diffuse_light[2] <= 0.0) diffuse_light[2] = 0.0;
+	emission_light[2] -= .1;
+	if (emission_light[2] <= 0.0) emission_light[2] = 0.0;
+	ambient_light[2] -= .1;
+	if (ambient_light[2] <= 0) ambient_light[2] = 0.0;
+	glLightfv(GL_LIGHT0, GL_AMBIENT_AND_DIFFUSE, diffuse_light);
+	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, diffuse_light);
+	glLightfv(GL_LIGHT0, GL_AMBIENT_AND_DIFFUSE, emission_light);
+	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, emission_light);
+	glLightfv(GL_LIGHT0, GL_AMBIENT_AND_DIFFUSE, ambient_light);
+	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, ambient_light);
+}
+
+void IncreaseEmissionLight() {
+	for (int ii = 0; ii < 3; ii++) {
+		emission_light[ii] += .1;
+		if (emission_light[ii] >= 1.0) emission_light[ii] = 1.0;
+	}
+	glLightfv(GL_LIGHT0, GL_EMISSION, emission_light);
+	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, emission_light);
+	glEnable(GL_LIGHT0);
+}
+void DecreaseEmissionLight() {
+	for (int ii = 0; ii < 3; ii++) {
+		emission_light[ii] -= .1;
+		if (emission_light[ii] <= 0) emission_light[ii] = 0;
+	}
+	glLightfv(GL_LIGHT0, GL_EMISSION, emission_light);
+	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, emission_light);
+	glEnable(GL_LIGHT0);
+}
+void IncreaseDiffuseLight() {
+	for (int ii = 0; ii < 3; ii++) {
+		diffuse_light[ii] += .1;
+		if (diffuse_light[ii] >= 1.0) diffuse_light[ii] = 1.0;
+	}
+	glLightfv(GL_LIGHT0, GL_AMBIENT_AND_DIFFUSE, diffuse_light);
+	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, diffuse_light);
+	glEnable(GL_LIGHT0);
+}
+void DecreaseDiffuseLight() {
+	for (int ii = 0; ii < 3; ii++) {
+		diffuse_light[ii] -= .1;
+		if (diffuse_light[ii] <= 0) diffuse_light[ii] = 0;
+	}
+	glLightfv(GL_LIGHT0, GL_AMBIENT_AND_DIFFUSE, diffuse_light);
+	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, diffuse_light);
+	glEnable(GL_LIGHT0);
+}
+
+void IncreaseAmbiantLight() {
+	for (int ii = 0; ii < 3; ii++) {
+		ambient_light[ii] += .1;
+		if (ambient_light[ii] >= 1.0) ambient_light[ii] = 1.0;
+	}
+	glLightfv(GL_LIGHT0, GL_AMBIENT_AND_DIFFUSE, ambient_light);
+	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, ambient_light);
+	glEnable(GL_LIGHT0);
+}
+void DecreaseAmbiantLight() {
+	for (int ii = 0; ii < 3; ii++) {
+		ambient_light[ii] -= .1;
+		if (ambient_light[ii] <= 0) ambient_light[ii] = 0;
+	}
+	glLightfv(GL_LIGHT0, GL_AMBIENT_AND_DIFFUSE, ambient_light);
+	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, ambient_light);
+	glEnable(GL_LIGHT0);
+}
+
+void ResetLightPosition() {
+	light_position[cX] = -2.0, light_position[cY] = -2.0, light_position[cZ] = 0;
+}

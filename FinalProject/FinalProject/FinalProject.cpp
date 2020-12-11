@@ -22,6 +22,7 @@ int main(int argc, char** argv)
 {
 	init_window(argc, argv);
 	other_init();
+	MazeInit();
 	glutDisplayFunc(display);
 	glutKeyboardFunc(keyboard);
 	glutSpecialFunc(specialKeyboardKeys);
